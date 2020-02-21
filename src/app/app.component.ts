@@ -1,9 +1,11 @@
 import {Component, ViewEncapsulation, OnDestroy, ViewChild} from '@angular/core'
 import {SelectionChange} from '@fbpx-ui/core'
+import {exampleFlows} from './examples'
 import {
   dagreLayout,
   GraphNodeMouseEvent,
   SelectionManager,
+  Flow,
   Port,
   Link,
   Node,
@@ -16,6 +18,10 @@ import {graph, graph2} from './graphs/graph'
 import {Subscription, BehaviorSubject} from 'rxjs'
 
 export interface GraphEvents {}
+
+export interface Example {
+  title: string
+}
 
 @Component({
   selector: 'app-root',
@@ -34,6 +40,9 @@ export class AppComponent implements OnDestroy {
   public scale$ = new BehaviorSubject(1)
 
   public events = {}
+
+  public exampleFlows = exampleFlows
+  public currentExample: Flow = exampleFlows[0]
 
   @ViewChild('graphComponent')
   public graphComponent: GraphComponent
@@ -146,5 +155,9 @@ export class AppComponent implements OnDestroy {
       },
       event.ctrlKey
     )
+  }
+
+  public chooseExample(example: Flow) {
+    this.currentExample = example
   }
 }

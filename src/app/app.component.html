@@ -10,6 +10,24 @@
         </div>
         <div class="btn-group btn-group-sm" role="group">
           <button class="btn btn-primary " (click)="zoom(1)">Zoom</button>
+          <div ngbDropdown class="d-inline-block">
+            <button
+              class="btn btn-primary btn-sm"
+              id="examplesDropdown"
+              ngbDropdownToggle
+            >
+              {{ currentExample?.title || 'Choose example...' }}
+            </button>
+            <div ngbDropdownMenu aria-labelledby="examplesDropdown">
+              <button
+                *ngFor="let example of exampleFlows"
+                ngbDropdownItem
+                (click)="chooseExample(example)"
+              >
+                {{ example.title }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -18,7 +36,7 @@
         <fbpx-graph
           #graphComponent
           [initialScale]="'auto'"
-          [graph]="graph"
+          [graph]="currentExample"
           (onNodeClick)="onNodeClick($event)"
           (onAddNode)="onAddNode($event)"
           (onPan)="onPan($event)"
@@ -41,7 +59,7 @@
           </div>
         </div>
         <div fxFlex="49%" class="code-block">
-          <code>{{ graphComponent?.graph | json }}</code>
+          <code>{{ currentExample | json }}</code>
         </div>
       </div>
     </div>
