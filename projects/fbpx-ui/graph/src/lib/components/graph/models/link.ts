@@ -2,7 +2,7 @@ import {Connector} from './connector'
 import {Metadata} from './metadata'
 
 export interface Link {
-  id: string
+  id?: string
   sourceX?: number
   sourceY?: number
   targetX?: number

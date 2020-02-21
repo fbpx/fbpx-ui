@@ -37,7 +37,12 @@ import {autoScaleFromElement} from './layout'
 import {PanzoomObject} from '@panzoom/panzoom/dist/src/types'
 import {SelectionManager} from './services'
 
-export interface OnPanEvent {
+export interface AddNodeEvent {
+  node: Node
+  position: Position
+}
+
+export interface PanEvent {
   data: PanData
   offset: Position
 }
@@ -208,11 +213,8 @@ export class GraphComponent
   /**
    * Triggers when a link has been created.
    */
-  @Output() public onLinkCreated = new EventEmitter()
-  /**
-   * Triggers when a node is moved
-   */
-  @Output() public onNodeMove = new EventEmitter()
+  @Output() public onLinkCreated = new EventEmitter<Link>()
+
   /**
    * Triggers when a node is clicked
    */
@@ -220,17 +222,19 @@ export class GraphComponent
   /**
    * Triggers when a node is added to the canvas by a drop event
    */
-  @Output() public onAddNode = new EventEmitter()
+  @Output() public onAddNode = new EventEmitter<AddNodeEvent>()
 
   /**
-   * Triggers whenever the node updates (TODO: when exactly)
+   * Triggers whenever the node updates.
+   *
+   * e.g. after drag it
    */
-  @Output() public onNodeUpdate = new EventEmitter()
+  @Output() public onNodeUpdate = new EventEmitter<Node>()
 
   /**
-   * Triggers whenever the node updates (TODO: when exactly)
+   * Triggers during canvas panning.
    */
-  @Output() public onPan = new EventEmitter<OnPanEvent>()
+  @Output() public onPan = new EventEmitter<PanEvent>()
 
   /**
    * Triggers on entering an input port
@@ -568,7 +572,7 @@ export class GraphComponent
   /**
    *  Executes whenever a node drag has finished.
    */
-  public onNodeDragEnd(node, {x, y}) {
+  public onNodeDragEnd(node: Node, {x, y}) {
     if (!this.editable) {
       return
     }

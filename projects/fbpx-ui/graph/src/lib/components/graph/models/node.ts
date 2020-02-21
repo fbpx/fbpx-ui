@@ -2,7 +2,7 @@ import {Metadata} from './metadata'
 import {Port} from './port'
 
 export interface Node {
-  id: string
+  id?: string
   name: string
   description?: string
   title?: string

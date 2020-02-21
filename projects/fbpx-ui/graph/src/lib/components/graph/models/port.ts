@@ -1,7 +1,7 @@
 import {Position} from '@fbpx-ui/core'
 
 export interface Port {
-  id: string
+  id?: string
   name: string
   title?: string
   description?: string

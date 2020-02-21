@@ -6,13 +6,13 @@ import {
   GraphNodeMouseEvent,
   SelectionManager,
   Flow,
-  Port,
   Link,
   Node,
   NodePortEvent,
   PortSelection,
-  OnPanEvent,
+  PanEvent,
   GraphComponent,
+  AddNodeEvent,
 } from '@fbpx-ui/graph'
 import {graph, graph2} from './graphs/graph'
 import {Subscription, BehaviorSubject} from 'rxjs'
@@ -67,7 +67,7 @@ export class AppComponent implements OnDestroy {
     }
   }
 
-  onPan = (event: OnPanEvent) => {}
+  onPan = (event: PanEvent) => {}
 
   onScale = (scale: number) => {
     this.scale$.next(scale)
@@ -81,9 +81,18 @@ export class AppComponent implements OnDestroy {
     event.nodeComponent.toggleClass('selected')
   }
 
-  onAddNode = event => {}
+  onAddNode = (event: AddNodeEvent) => {}
 
-  onNodeUpdate = event => {}
+  onNodeUpdate = (event: Node) => {
+    this.log(
+      `Node ${event.name} has been updated, position: ${event.metadata?.x}:${event.metadata?.y}`
+    )
+  }
+  onLinkCreated = ({source, target}: Link) => {
+    this.log(
+      `A new link has been created between ${source.id}:${source.port} and ${target.id}:${target.port}`
+    )
+  }
 
   onInputPortEnter = (event: NodePortEvent) => {
     this.log(`Input port ${event.port.name} Entered`)

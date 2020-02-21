@@ -1,7 +1,7 @@
 import {BehaviorSubject, Subject} from 'rxjs'
 
 export interface WithId {
-  id: string
+  id?: string
 }
 
 export interface SelectionChange<T> {

@@ -3,7 +3,7 @@ import {Node} from './node'
 import {Port} from './port'
 
 export interface Flow {
-  id: string
+  id?: string
   title?: string
   ports?: {
     input?: Port[]
