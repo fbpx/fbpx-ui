@@ -4,7 +4,7 @@
 
 Component which is specifically created to create graphs for flow-based applications. It allows you to render nodes which each can have several input and output ports which can be connected by creating links between them.
 
-[fbpx-graph](https://raw.githubusercontent.com/fbpx/fbpx-ui/master/src/assets/screenshot.png)
+![fbpx-graph](https://raw.githubusercontent.com/fbpx/fbpx-ui/master/src/assets/screenshot.png)
 
 Current features:
 
