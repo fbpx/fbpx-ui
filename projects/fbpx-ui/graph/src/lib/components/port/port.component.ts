@@ -32,7 +32,7 @@ export interface PortEvent {
 })
 export class PortComponent implements OnDestroy {
   @Input() public port: Port
-  @Output() public onPress = new EventEmitter<MouseEvent>()
+  @Output() public onPress = new EventEmitter<PortEvent>()
   @Output() public onMouseEnter = new EventEmitter<PortEvent>()
   @Output() public onMouseLeave = new EventEmitter<PortEvent>()
   @ViewChild('portCircle') public portCircle: ElementRef
@@ -82,7 +82,11 @@ export class PortComponent implements OnDestroy {
 
     this.isActive = true
 
-    this.onPress.emit(event)
+    this.onPress.emit({
+      event,
+      port: this.port,
+      portComponent: this,
+    })
   }
 
   public getPortPosition(): Position {

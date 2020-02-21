@@ -99,10 +99,7 @@ const panZoomDepth = 0.15
             [attr.transform]="currentTransformSVG"
           >
             <g
-              *ngFor="
-                let link of createViewModelLinks(graph.links);
-                trackBy: linkTracker
-              "
+              *ngFor="let link of links; trackBy: linkTracker"
               fbpx-graph-link
               (onLinkSelection)="onLinkSelection($event)"
               [link]="link"
@@ -194,12 +191,12 @@ export class GraphComponent
   @Input()
   public graph: Flow
 
+  public _initialScale: number | 'auto'
+
   @Input() public set initialScale(value: number | 'auto') {
-    if (value === 'auto') {
-      this._autoScale = true
-    } else {
-      this.zoom(value)
-    }
+    this._initialScale = value
+
+    this.setInitialScale(value)
   }
 
   public get scale() {
@@ -319,14 +316,62 @@ export class GraphComponent
     private zone: NgZone,
     elementRef: ElementRef
   ) {
-    this.onEdgeDraw = this.onEdgeDraw.bind(this)
-    this.onEdgeFinish = this.onEdgeFinish.bind(this)
     this.element = elementRef.nativeElement
     this.parentContainer = this.element.parentNode || this.element
   }
 
   public async ngOnInit() {
     this.loading$.next(false)
+  }
+
+  public async ngOnChanges({graph, scale}: SimpleChanges) {
+    if (graph.currentValue !== graph.previousValue) {
+      setTimeout(() => {
+        this.resetState()
+        this.changeDetectorRef.detectChanges()
+      })
+    }
+  }
+
+  public resetState() {
+    this.panZoom = undefined
+    this.portInfo = {}
+    this.nodeInfo = {}
+    this.targetPort = undefined
+    this.sourcePort = undefined
+    this._scale = undefined
+    this._autoScale = false
+    this.linksCreated = false
+    this.isInitialized = false
+    this.offset = {
+      x: 0,
+      y: 0,
+    }
+    this.panZoomScale = 1
+    this.setInitialScale(this._initialScale || 'auto')
+  }
+
+  /**
+   * Triggers when any of the nodes has finished rendering.
+   *
+   * The graph uses this information to become aware of these port positions.
+   *
+   * This information is then used to draw the edges between source and target ports.
+   */
+  public afterNodeViewInit(nodeComponent: NodeComponent) {
+    this.updateNodeDimensions(nodeComponent)
+
+    if (Object.keys(this.nodeInfo).length === this.graph.nodes.length) {
+      this.layoutGraph()
+    }
+  }
+
+  public setInitialScale(value: number | 'auto') {
+    if (value === 'auto') {
+      this._autoScale = true
+    } else {
+      this.zoom(value)
+    }
   }
 
   public zoom(scale: number) {
@@ -354,8 +399,6 @@ export class GraphComponent
     }
     this.changeDetectorRef.detectChanges()
   }
-
-  public async ngOnChanges({graph, scale}: SimpleChanges) {}
 
   public panZoomChange = change => {
     this.panZoomScale = change.detail.scale
@@ -429,6 +472,8 @@ export class GraphComponent
         this.updatePortPositionsForNode(nodeComponent)
       }
 
+      this.createViewModelLinks(this.graph.links)
+
       this.changeDetectorRef.detectChanges()
     })
   }
@@ -442,17 +487,31 @@ export class GraphComponent
    *
    * These positions are based on whatever is the current location of the source and target ports.
    */
-  public createViewModelLinks(links) {
-    const _links = []
+  public links: Link[] = []
+  public createViewModelLinks(links: Link[]) {
+    this.links = []
 
     for (const link of links) {
-      const _link = this._createLink(link)
+      const _link = this.makeLink(link)
       if (_link) {
-        _links.push(_link)
+        this.links.push(_link)
       }
     }
+  }
 
-    return _links
+  public updateViewModelLinksForNodes(nodeIds: string[]) {
+    this.links = this.links
+      .map(link => {
+        if (
+          nodeIds.includes(link.source.id) ||
+          nodeIds.includes(link.target.id)
+        ) {
+          return this.makeLink(link)
+        }
+
+        return link
+      })
+      .filter(link => link !== null)
   }
 
   /**
@@ -545,6 +604,9 @@ export class GraphComponent
 
   public updatePortPositionsForNode(nodeComponent: NodeComponent) {
     if (nodeComponent) {
+      const {
+        node: {id: nodeId},
+      } = nodeComponent
       const {input, output} = nodeComponent.getPortPositions()
 
       const nodeGroupOffset = this.nodeGroupRef.nativeElement.getBoundingClientRect()
@@ -552,7 +614,9 @@ export class GraphComponent
       this.updatePortPositions(input, nodeGroupOffset)
       this.updatePortPositions(output, nodeGroupOffset)
 
-      this.portInfo[nodeComponent.node.id] = {input, output}
+      this.portInfo[nodeId] = {input, output}
+
+      this.updateViewModelLinksForNodes([nodeId])
     }
   }
 
@@ -576,21 +640,6 @@ export class GraphComponent
 
   public updateNodeDimensions({width, height, node: {id}}: NodeComponent) {
     this.nodeInfo[id] = {width, height}
-  }
-
-  /**
-   * Triggers when any of the nodes has finished rendering.
-   *
-   * The graph uses this information to become aware of these port positions.
-   *
-   * This information is then used to draw the edges between source and target ports.
-   */
-  public afterNodeViewInit(nodeComponent: NodeComponent) {
-    this.updateNodeDimensions(nodeComponent)
-
-    if (Object.keys(this.nodeInfo).length === this.graph.nodes.length) {
-      this.layoutGraph()
-    }
   }
 
   /**
@@ -648,7 +697,7 @@ export class GraphComponent
    *
    * @param position
    */
-  public onEdgeDraw(position) {
+  public onEdgeDraw = position => {
     if (!this.editable) {
       return
     }
@@ -680,7 +729,7 @@ export class GraphComponent
   /**
    * Executed when an edge is finished.
    */
-  public onEdgeFinish() {
+  public onEdgeFinish = () => {
     if (!this.editable) {
       return
     }
@@ -753,11 +802,11 @@ export class GraphComponent
   }
 
   public linkTracker = (_index, item) => {
-    return item.id
+    return `${this.graph.id}-${item.id}`
   }
 
   public nodeTracker = (_index, item) => {
-    return item.id
+    return `${this.graph.id}-${item.id}`
   }
 
   /**
@@ -767,7 +816,7 @@ export class GraphComponent
    *
    * The PortInfo contains the location of the ports.
    */
-  private _createLink(link: Link): Link | null {
+  private makeLink(link: Link): Link | null {
     const source = this.portInfo[link.source.id]
     const target = this.portInfo[link.target.id]
 
