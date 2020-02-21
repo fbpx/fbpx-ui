@@ -26,6 +26,7 @@ import {
   PortPositions,
   PortUpdate,
   NodePortEvent,
+  TargetPortToggleEvent,
 } from '../node'
 import {PanData} from '../shared'
 import {Flow, Link, Node, Connector} from './models'
@@ -653,7 +654,7 @@ export class GraphComponent
   /**
    * Executed when a target port is entered or left using the mouse.
    */
-  public onToggleTargetPort({id, port, isTarget}) {
+  public onToggleTargetPort({id, port, isTarget}: TargetPortToggleEvent) {
     if (!this.editable) {
       return
     }
@@ -661,7 +662,7 @@ export class GraphComponent
     if (isTarget) {
       this.targetPort = {
         id,
-        port,
+        port: port.name,
       }
     } else {
       this.targetPort = undefined
