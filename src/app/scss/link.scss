@@ -1,0 +1,33 @@
+.link-canvas {
+  width: 100%;
+  height: 100%;
+
+  .drawEdge {
+    pointer-events: none;
+  }
+
+  path {
+    cursor: pointer;
+    stroke: white;
+    stroke-width: 4;
+
+    &:hover {
+      stroke-width: 8;
+      outline-color: black;
+      outline-width: 2;
+    }
+
+    &.selected {
+      stroke-width: 8;
+    }
+
+    &.active {
+      stroke-width: 6;
+      stroke: gold;
+    }
+
+    &.persist {
+      stroke: #0a6ebd;
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": [],
+    "paths": {
+      "@fbpx-ui/core": [
+        "/srv/data/git/chix/fbpx/fbpx-graph/projects/fbpx-ui/core/src/public-api.ts"
+      ],
+      "@fbpx-ui/graph": [
+        "/srv/data/git/chix/fbpx/fbpx-graph/projects/fbpx-ui/graph/src/public-api.ts"
+      ]
+    }
+  },
+  "include": ["projects/**/*.ts", "src/**/*.d.ts"]
+}

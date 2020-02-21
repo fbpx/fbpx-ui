@@ -1,0 +1,159 @@
+////////////////////////////////
+//
+// Node View
+//
+////////////////////////////////
+
+$node-border-radius: 18px;
+$node-border-color: silver;
+$node-background-color: #100c0c;
+$node-heading-background-color: #1b1e22;
+$node-footer-background-color: #a33333;
+$node-title-color: white;
+$node-port-label-font-size: 12px;
+$node-output-background-color: #1b1e22;
+$node-max-width: 450px;
+$node-min-width: 200px;
+
+.node {
+  position: absolute;
+  cursor: pointer;
+  user-select: none;
+  width: auto;
+  z-index: 500;
+  max-width: $node-max-width;
+  min-width: $node-min-width;
+  box-shadow: 0 0 100px -2px rgba(230, 230, 230, 0.2);
+  border-radius: $node-border-radius;
+  border: 2px solid $node-border-color;
+  background-color: $node-background-color;
+  opacity: 0.85;
+  transition: border-color 0.8s ease-out;
+
+  &.selected {
+    border: 3px dotted #fff;
+    opacity: 0.95;
+  }
+
+  &.active {
+    border: 3px solid #fff;
+    opacity: 0.95;
+  }
+
+  .node-heading {
+    cursor: move;
+    border-top-left-radius: $node-border-radius;
+    border-top-right-radius: $node-border-radius;
+    background-color: $node-heading-background-color;
+    height: 1.75em;
+    line-height: 1.5em;
+  }
+
+  .node-title {
+    color: $node-title-color;
+    text-align: center;
+  }
+
+  .node-description {
+    display: none;
+    padding: 1em;
+    border-bottom: 1px solid #3c3c3c;
+    width: 185px;
+    font-style: italic;
+    user-select: text;
+  }
+
+  .node-body {
+    border-radius: $node-border-radius;
+    width: 100%;
+  }
+
+  .node-output {
+    padding: 1em;
+    background-color: $node-output-background-color;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    max-height: 350px;
+  }
+
+  .node-footer {
+    border-bottom-left-radius: 32px;
+    border-bottom-right-radius: 32px;
+    background-color: $node-footer-background-color;
+    height: 1.75em;
+  }
+
+  .node-port {
+    margin-top: -18px;
+    margin-left: -18px;
+    border: 1px solid transparent;
+    width: 15px;
+    height: 15px;
+  }
+
+  .node-port-input {
+    display: grid;
+    grid-template-columns: 0fr auto;
+    grid-template-areas: 'port label';
+    line-height: 1.2em;
+
+    label {
+      grid-area: label;
+      color: $light;
+      font-size: $node-port-label-font-size;
+      margin-left: 0.3em;
+    }
+
+    svg {
+      grid-area: port;
+
+      circle {
+        fill: silver;
+        stroke: silver;
+        stroke-width: 1;
+      }
+
+      &.selected circle {
+        stroke: white;
+      }
+
+      &.default circle {
+        stroke: blue;
+      }
+
+      &.context circle {
+        fill: orange;
+      }
+
+      &.exposed circle {
+        stroke: white;
+        stroke-width: 6;
+      }
+    }
+  }
+
+  .node-port-output {
+    display: grid;
+    grid-template-columns: auto 0fr;
+    grid-template-areas: 'label port';
+    line-height: 1.3em;
+
+    span {
+      grid-area: label;
+      text-align: right;
+      color: silver;
+      font-size: $node-port-label-font-size;
+      margin-right: 5px;
+    }
+
+    svg {
+      grid-area: port;
+
+      circle {
+        fill: silver;
+        stroke: silver;
+        stroke-width: 1;
+      }
+    }
+  }
+}

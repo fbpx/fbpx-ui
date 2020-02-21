@@ -1,0 +1,33 @@
+{
+  "extends": ["tslint:latest", "tslint-config-prettier"],
+  "rulesDirectory": ["codelyzer", "tslint-plugin-prettier"],
+  "rules": {
+    "prettier": true,
+    "interface-name": false,
+    "variable-name": false,
+    "no-console": false,
+    "object-literal-sort-keys": false,
+    "no-empty": false,
+    "no-submodule-imports": false,
+
+    "interface-over-type-literal": true,
+
+    "use-component-view-encapsulation": true,
+    "contextual-lifecycle": true,
+    "no-output-on-prefix": false,
+    "no-inputs-metadata-property": true,
+    "no-outputs-metadata-property": true,
+    "no-host-metadata-property": true,
+    "no-input-rename": true,
+    "no-output-rename": true,
+    "use-lifecycle-interface": true,
+    "use-pipe-decorator": true,
+    "use-pipe-transform-interface": true,
+    "component-class-suffix": true,
+    "directive-selector": [true, "attribute", "fbpx", "camelCase"],
+    "component-selector": [true, "element", "fbpx", "kebab-case"],
+    "directive-class-suffix": true,
+    "template-banana-in-box": true,
+    "template-no-negated-async": true
+  }
+}

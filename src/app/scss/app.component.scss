@@ -1,0 +1,56 @@
+$card-border-color: green;
+$card-bg: #1b1e22;
+$light: silver;
+$small-font-size: 10px;
+$card-cap-bg: silver;
+
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  padding: 1em;
+}
+
+.dropZone {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.example-container {
+  // display: flex;
+}
+
+.example-1 {
+  border: 2px solid black;
+  height: 450px;
+}
+
+#log {
+  height: 350px;
+  display: block;
+  border: 2px solid black;
+  color: white;
+  overflow: auto;
+}
+
+.code-block {
+  height: 350px;
+  border: 2px solid black;
+  color: white;
+  overflow: auto;
+}
+
+.info {
+  color: white;
+}
+
+.scale-info {
+  font-weight: bold;
+}
+
+@import './graph';

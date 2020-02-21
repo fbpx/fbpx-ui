@@ -1,0 +1,49 @@
+<div class="example-container">
+  <div class="card">
+    <div class="card-header">
+      <div class="info">
+        <div class="scale-info">
+          Scale: {{ scale$ | async }} Panzoom:
+          {{ graphComponent?.panZoomScale }}
+          Offset:
+          {{ graphComponent?.offset | json }}
+        </div>
+        <div class="btn-group btn-group-sm" role="group">
+          <button class="btn btn-primary " (click)="zoom(1)">Zoom</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="example-1">
+        <fbpx-graph
+          #graphComponent
+          [initialScale]="'auto'"
+          [graph]="graph"
+          (onNodeClick)="onNodeClick($event)"
+          (onAddNode)="onAddNode($event)"
+          (onPan)="onPan($event)"
+          (onScale)="onScale($event)"
+          (onNodeUpdate)="onNodeUpdate($event)"
+          (onInputPortEnter)="onInputPortEnter($event)"
+          (onInputPortLeave)="onInputPortLeave($event)"
+          (onInputPortPressed)="onInputPortPressed($event)"
+          (onOutputPortEnter)="onOutputPortEnter($event)"
+          (onOutputPortLeave)="onOutputPortLeave($event)"
+          (onOutputPortPressed)="onOutputPortPressed($event)"
+        ></fbpx-graph>
+      </div>
+    </div>
+    <div class="card-footer text-muted">
+      <div fxFlex="row" fxLayoutAlign="space-between">
+        <div fxFlex="50%" id="log">
+          <div class="log-message" *ngFor="let message of log$ | async">
+            {{ message }}
+          </div>
+        </div>
+        <div fxFlex="49%" class="code-block">
+          <code>{{ graphComponent?.graph | json }}</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

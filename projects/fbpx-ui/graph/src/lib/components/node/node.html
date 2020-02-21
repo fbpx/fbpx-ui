@@ -1,0 +1,59 @@
+<div
+  #nodeElement
+  [ngClass]="nodeClasses"
+  (click)="handleEvent('onClick', $event)"
+  (dblclick)="handleEvent('onDoubleClick', $event)"
+  (mouseover)="handleEvent('onMouseOver', $event)"
+  (mouseleave)="handleEvent('onMouseLeave', $event)"
+  (mousedown)="handleEvent('onMouseDown', $event)"
+  (mouseup)="handleEvent('onMouseUp', $event)"
+>
+  <div class="node-heading">
+    <div class="node-title">{{node.title || node.name}}</div>
+  </div>
+  <div class="node-body">
+    <div class="node-description">Description:</div>
+    <div class="node-content">
+      <div *ngIf="node.ports?.input?.length" class="node-ports-input">
+        <ng-content></ng-content>
+        <div
+          *ngFor="let port of node.ports.input; trackBy: trackByPortName"
+          class="node-port-input"
+        >
+          <svg
+            #inputPort
+            fbpx-graph-port
+            [stopEventPropagation]="['click']"
+            [port]="port"
+            (onMouseEnter)="handleInputPortEnter(port, $event)"
+            (onMouseLeave)="handleInputPortLeave(port, $event)"
+            (onPress)="handleInputPortPressed(port, $event)"
+            [ngClass]="port.classes"
+            [attr.title]="node.title"
+          ></svg>
+          <label>
+            {{port.title || port.name}}
+          </label>
+        </div>
+      </div>
+      <div *ngIf="node.ports?.output?.length" class="node-ports-output">
+        <div
+          *ngFor="let port of node.ports?.output; trackBy: trackByPortName"
+          class="node-port-output"
+        >
+          <span>{{port.title || port.name}}</span>
+          <svg
+            #outputPort
+            fbpx-graph-port
+            [port]="port"
+            (onMouseEnter)="handleOutputPortEnter(port, $event)"
+            (onMouseLeave)="handleOutputPortLeave(port, $event)"
+            (onPress)="handleOutputPortPressed(port, $event)"
+            [ngClass]="port.classes"
+          ></svg>
+        </div>
+      </div>
+      <div #contentDiv class="node-output">{{content}}</div>
+    </div>
+  </div>
+</div>
