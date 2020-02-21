@@ -42,10 +42,6 @@ export class PortComponent implements OnDestroy {
   constructor(private elementRef: ElementRef) {
     const element = this.elementRef.nativeElement
 
-    this.handleMouseDown = this.handleMouseDown.bind(this)
-    this.handleMouseLeave = this.handleMouseLeave.bind(this)
-    this.handleMouseEnter = this.handleMouseEnter.bind(this)
-
     element.addEventListener('mousedown', this.handleMouseDown)
     element.addEventListener('mouseleave', this.handleMouseLeave)
     element.addEventListener('mouseenter', this.handleMouseEnter)
@@ -61,7 +57,15 @@ export class PortComponent implements OnDestroy {
     return this.port.width
   }
 
-  public handleMouseEnter(event: MouseEvent) {
+  public ngOnDestroy() {
+    const element = this.elementRef.nativeElement
+
+    element.removeEventListener('mousedown', this.handleMouseDown)
+    element.removeEventListener('mouseleave', this.handleMouseLeave)
+    element.removeEventListener('mouseenter', this.handleMouseEnter)
+  }
+
+  private handleMouseEnter = (event: MouseEvent): void => {
     this.onMouseEnter.emit({
       event,
       port: this.port,
@@ -69,7 +73,7 @@ export class PortComponent implements OnDestroy {
     })
   }
 
-  public handleMouseLeave(event: MouseEvent) {
+  private handleMouseLeave = (event: MouseEvent): void => {
     this.onMouseLeave.emit({
       event,
       port: this.port,
@@ -77,7 +81,7 @@ export class PortComponent implements OnDestroy {
     })
   }
 
-  public handleMouseDown(event: MouseEvent): void {
+  private handleMouseDown = (event: MouseEvent): void => {
     event.stopPropagation()
 
     this.isActive = true
@@ -96,13 +100,5 @@ export class PortComponent implements OnDestroy {
       x,
       y,
     }
-  }
-
-  public ngOnDestroy() {
-    const element = this.elementRef.nativeElement
-
-    element.removeEventListener('mousedown', this.handleMouseDown)
-    element.removeEventListener('mouseleave', this.handleMouseLeave)
-    element.removeEventListener('mouseenter', this.handleMouseEnter)
   }
 }
