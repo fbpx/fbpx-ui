@@ -9,7 +9,9 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "build-storybook": "build-storybook",
-    "storybook": "start-storybook -p 4200"
+    "storybook": "start-storybook -p 4200",
+    "build:deploy": "ng build fbpx-graph --prod --base-href /fbpx-ui/",
+    "deploy": "gh-pages -d dist/fbpx-graph"
   },
   "private": true,
   "dependencies": {
@@ -51,6 +53,7 @@
     "@types/lodash": "^4.14.149",
     "@types/node": "^12.11.1",
     "codelyzer": "^5.1.2",
+    "gh-pages": "^2.2.0",
     "htmllint": "^0.8.0",
     "jasmine-core": "~3.5.0",
     "jasmine-spec-reporter": "~4.2.1",

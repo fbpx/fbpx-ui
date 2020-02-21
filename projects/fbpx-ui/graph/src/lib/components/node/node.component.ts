@@ -289,6 +289,10 @@ export class NodeComponent implements OnInit, AfterViewInit {
   }
 
   public handleInputPortPressed(port: Port, {event, portComponent}: PortEvent) {
+    if (event.button === 2) {
+      return
+    }
+
     this.onInputPortPressed.emit({
       type: 'input',
       nodeId: this.node.id,
@@ -325,6 +329,10 @@ export class NodeComponent implements OnInit, AfterViewInit {
     port: Port,
     {event, portComponent}: PortEvent
   ) {
+    if (event.button === 2) {
+      return
+    }
+
     this.onEdgeStart.emit({
       id: this.node.id,
       port: port.name,

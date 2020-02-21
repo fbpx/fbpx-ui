@@ -5,7 +5,10 @@
 ////////////////////////////////
 
 $node-border-radius: 18px;
+$node-box-shadow: 0 0 100px -2px rgba(230, 230, 230, 0.2);
 $node-border-color: silver;
+$node-border: 2px solid $node-border-color;
+$node-opacity: 0.85;
 $node-background-color: #100c0c;
 $node-heading-background-color: #1b1e22;
 $node-footer-background-color: #a33333;
@@ -14,30 +17,32 @@ $node-port-label-font-size: 12px;
 $node-output-background-color: #1b1e22;
 $node-max-width: 450px;
 $node-min-width: 200px;
+$node-transition: border-color 0.8s ease-out;
+
+$node-selected-border: 3px dotted #fff;
+$node-selected-opacity: 0.95;
+
+$node-active-border: 3px solid #fff;
+$node-active-opacity: 0.95;
 
 .node {
-  position: absolute;
-  cursor: pointer;
-  user-select: none;
-  width: auto;
-  z-index: 500;
   max-width: $node-max-width;
   min-width: $node-min-width;
-  box-shadow: 0 0 100px -2px rgba(230, 230, 230, 0.2);
+  box-shadow: $node-box-shadow;
   border-radius: $node-border-radius;
-  border: 2px solid $node-border-color;
+  border: $node-border;
   background-color: $node-background-color;
-  opacity: 0.85;
-  transition: border-color 0.8s ease-out;
+  opacity: $node-opacity;
+  transition: $node-transition;
 
   &.selected {
-    border: 3px dotted #fff;
-    opacity: 0.95;
+    border: $node-selected-border;
+    opacity: $node-selected-opacity;
   }
 
   &.active {
-    border: 3px solid #fff;
-    opacity: 0.95;
+    border: $node-active-border;
+    opacity: $node-active-opacity;
   }
 
   .node-heading {

@@ -18,7 +18,7 @@
     "selector-class-pattern": "[a-z-]+",
     "selector-id-pattern": "[a-z-]+",
     "selector-max-id": 0,
-    "selector-no-qualifying-type": true,
+    "selector-no-qualifying-type": false,
     "selector-max-universal": 0,
     "unit-whitelist": ["px", "%", "em", "rem", "vw", "vh", "deg"],
     "max-empty-lines": 2,

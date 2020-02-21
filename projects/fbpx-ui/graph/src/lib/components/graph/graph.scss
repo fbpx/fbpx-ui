@@ -1,3 +1,42 @@
 :host {
   overflow: hidden;
 }
+
+.dropZone {
+  overflow: hidden;
+}
+
+.link-canvas {
+  width: 100%;
+  height: 100%;
+
+  .drawEdge {
+    pointer-events: none;
+  }
+
+  path {
+    cursor: pointer;
+  }
+}
+
+.graph {
+  position: relative;
+  transform-origin: 50% 50%;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+
+  svg {
+    pointer-events: all;
+
+    path {
+      pointer-events: stroke;
+    }
+  }
+
+  .node-group {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}

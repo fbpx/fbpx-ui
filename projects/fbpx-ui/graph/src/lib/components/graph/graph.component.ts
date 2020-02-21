@@ -153,17 +153,7 @@ const panZoomDepth = 0.15
       </div>
     </div>
   `,
-  styles: [
-    `
-      :host {
-        overflow: hidden;
-      }
-
-      .dropZone {
-        overflow: hidden !important;
-      }
-    `,
-  ],
+  styleUrls: ['./graph.scss'],
 })
 export class GraphComponent
   implements OnDestroy, AfterViewInit, AfterContentInit, OnChanges, OnInit {

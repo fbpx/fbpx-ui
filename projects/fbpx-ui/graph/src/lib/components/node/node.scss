@@ -1,3 +1,11 @@
 :host {
   position: absolute;
 }
+
+.node {
+  position: absolute;
+  cursor: pointer;
+  user-select: none;
+  width: auto;
+  z-index: 500;
+}
