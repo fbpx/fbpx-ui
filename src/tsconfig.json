@@ -12,15 +12,7 @@
     "importHelpers": true,
     "target": "es2015",
     "typeRoots": ["node_modules/@types"],
-    "lib": ["es2018", "dom"],
-    "paths": {
-      "@fbpx-ui/core": [
-        "/srv/data/git/chix/fbpx/fbpx-graph/projects/fbpx-ui/core/src/public-api.ts"
-      ],
-      "@fbpx-ui/graph": [
-        "/srv/data/git/chix/fbpx/fbpx-graph/projects/fbpx-ui/graph/src/public-api.ts"
-      ]
-    }
+    "lib": ["es2018", "dom"]
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,

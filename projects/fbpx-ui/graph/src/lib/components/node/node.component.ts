@@ -16,7 +16,7 @@ import {
 } from '@angular/core'
 import {Node, Port} from '../graph/models'
 import {throttle, Cancelable} from 'lodash'
-import {PortComponent, PortEvent} from '@fbpx-ui/graph'
+import {PortComponent, PortEvent} from '../port'
 
 export interface PortPosition {
   id: string

@@ -43,8 +43,6 @@ export function dagreLayout(
 
   dagre.layout(graph)
 
-  console.log('DAGRE LAYOUT', graph)
-
   return {
     ...flow,
     nodes: graph.nodes().map((v, index) => {
