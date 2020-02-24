@@ -366,7 +366,7 @@ export class NodeComponent implements OnInit, AfterViewInit {
     })
   }
 
-  public getPortPositions(scale: number = 1): PortPositions {
+  public getPortPositions(scale: number): PortPositions {
     return {
       input: this.collectPortPositions(this.inputPortElements, scale),
       output: this.collectPortPositions(this.outputPortElements, scale),
@@ -418,7 +418,7 @@ export class NodeComponent implements OnInit, AfterViewInit {
 
   private collectPortPositions(
     portElements: QueryList<PortComponent>,
-    scale: number = 1
+    scale: number
   ) {
     const ports = {}
     for (const portElement of portElements) {

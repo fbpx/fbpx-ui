@@ -1,5 +1,10 @@
 /**
  * Get position of an element without css transforms applied.
+ *
+ * Err ok, then we also do not get the translate.
+ *
+ * And then I arrive at the essence, all I need to know is the actual width of the node itself.
+ *
  */
 export function getPosition(elm: HTMLElement) {
   let x = 0
