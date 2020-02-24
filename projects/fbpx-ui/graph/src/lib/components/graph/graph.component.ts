@@ -793,6 +793,8 @@ export class GraphComponent
   }
 
   public ngOnDestroy() {
+    window.removeEventListener('resize', this.onResize)
+    window.removeEventListener('wheel', this.onWheel)
     this._removeDeselectAreaForLinksHandler()
     this._removeDeselectAreaForNodesHandler()
     // this._removeDeselectAreaForPortsHandler()
