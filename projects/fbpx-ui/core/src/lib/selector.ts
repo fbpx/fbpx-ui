@@ -47,7 +47,6 @@ export class Selector<T extends WithId> {
 
   public select(data: T, preserve: boolean) {
     this.selection$.next([...this.selection$.getValue(), data])
-    console.log('select port?')
     this.changes$.next({
       type: 'select',
       data,

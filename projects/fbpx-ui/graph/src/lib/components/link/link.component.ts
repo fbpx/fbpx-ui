@@ -10,7 +10,7 @@ import {
   SimpleChanges,
   ViewEncapsulation,
 } from '@angular/core'
-import {Link} from '../graph/models'
+import {Link, RenderLink} from '../graph/models'
 import {throttle, Cancelable} from 'lodash'
 import {createBoundingBox, createEdgePath, BoundingBox} from './util'
 
@@ -81,7 +81,7 @@ export class LinkComponent implements OnChanges {
   get height() {
     return `${this.boundingBox.height}px`
   }
-  @Input() public link: Link // only used as reference during active data
+  @Input() public link: RenderLink // only used as reference during active data
   @Input() public selected: boolean = false
   @Input() public persist: boolean = false
   @Input() public active: boolean = false

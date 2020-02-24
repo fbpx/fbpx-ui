@@ -1,4 +1,4 @@
-import {Flow} from '../models'
+import {Node} from '../models'
 
 export interface GraphBounds {
   top: number
@@ -9,8 +9,8 @@ export interface GraphBounds {
   height: number
 }
 
-export const getGraphBounds = (flow: Flow): GraphBounds => {
-  const positions = flow.nodes.reduce(
+export const getGraphBounds = (nodes: Node[]): GraphBounds => {
+  const positions = nodes.reduce(
     (value, node) => {
       const rightX = node.metadata.x + node.metadata.width
       const bottomY = node.metadata.y + node.metadata.height

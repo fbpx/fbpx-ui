@@ -66,19 +66,12 @@ export interface TargetPortToggleEvent {
   event: MouseEvent
 }
 
-export interface PortUpdate {
-  id: string
-  port: string
-  x: number
-  y: number
-}
-
 export interface PortPositions {
   input: {
-    [port: string]: PortUpdate
+    [port: string]: PortPosition
   }
   output: {
-    [port: string]: PortUpdate
+    [port: string]: PortPosition
   }
 }
 
@@ -239,11 +232,13 @@ export class NodeComponent implements OnInit, AfterViewInit {
    * @memberof NodeComponent
    */
   public ngAfterViewInit() {
-    this.afterViewInit.emit(this)
-    const {width, height} = this.nodeRef.nativeElement.getBoundingClientRect()
+    setTimeout(() => {
+      this.afterViewInit.emit(this)
+      const {width, height} = this.nodeRef.nativeElement.getBoundingClientRect()
 
-    this._width = width
-    this._height = height
+      this._width = width
+      this._height = height
+    })
 
     // this.changeDetectorRef.detach()
   }
@@ -371,10 +366,10 @@ export class NodeComponent implements OnInit, AfterViewInit {
     })
   }
 
-  public getPortPositions(): PortPositions {
+  public getPortPositions(scale: number = 1): PortPositions {
     return {
-      input: this.collectPortPositions(this.inputPortElements),
-      output: this.collectPortPositions(this.outputPortElements),
+      input: this.collectPortPositions(this.inputPortElements, scale),
+      output: this.collectPortPositions(this.outputPortElements, scale),
     }
   }
 
@@ -421,13 +416,16 @@ export class NodeComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private collectPortPositions(portElements: QueryList<PortComponent>) {
+  private collectPortPositions(
+    portElements: QueryList<PortComponent>,
+    scale: number = 1
+  ) {
     const ports = {}
     for (const portElement of portElements) {
       ports[portElement.port.name] = {
         id: this.node.id,
         port: portElement.port.name,
-        ...portElement.getPortPosition(),
+        ...portElement.getPortPosition(scale),
       }
     }
     return ports
