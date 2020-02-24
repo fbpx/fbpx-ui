@@ -18,7 +18,7 @@ import {
   QueryList,
   ViewEncapsulation,
 } from '@angular/core'
-import {getCoords, Position, writeTransform} from '@fbpx-ui/core'
+import {debugElement, getCoords, Position, writeTransform} from '@fbpx-ui/core'
 import {LinkComponent, LinkEvent} from '../link/link.component'
 import {
   NodeComponent,
@@ -340,7 +340,20 @@ export class GraphComponent
     }
   }
 
+  /**
+   * Zooms the graph using the center as focal point.
+   */
   public zoom(scale: number) {
+    const {x, y, width, height} = this.parentContainer.getBoundingClientRect()
+
+    debugElement()({x, y})
+
+    this.zoomToFocalPoint(scale, {
+      x: x + width / 2,
+      y: y + height / 2,
+    })
+
+    this.setScale(scale)
     this.changeDetectorRef.detectChanges()
   }
 
@@ -352,20 +365,21 @@ export class GraphComponent
     this.log('autoScale')
     const coords = autoScaleFromElement(this.parentContainer, nodes)
 
-    this._scale = coords.scale
-
     const rect = this.parentContainer.getBoundingClientRect()
 
     const halfHeight = rect.height / 2
     const halfWidth = rect.width / 2
 
-    const offsetY = halfHeight - (coords.bottom * this._scale) / 2
+    const offsetY = halfHeight - (coords.bottom * coords.scale) / 2
     const offsetX = -(coords.left * this._scale)
 
     this.offset = {
-      x: offsetX + halfWidth - (coords.width * this._scale) / 2,
+      x: offsetX + halfWidth - (coords.width * coords.scale) / 2,
       y: offsetY - halfHeight,
     }
+
+    this.setScale(coords.scale)
+
     this.changeDetectorRef.detectChanges()
   }
 
@@ -854,14 +868,27 @@ export class GraphComponent
     }
   }
 
-  onWheel = (event: MouseWheelEvent) => {
+  private onWheel = (event: MouseWheelEvent) => {
     const delta =
       event.deltaY === 0 && event.deltaX ? event.deltaX : event.deltaY
     const wheel = delta < 0 ? 1 : -1
 
-    const relativeFocalPoint = this.getRelativeFocalPoint(event)
-
     const scale = this._scale * Math.exp((wheel * this.zoomFactor) / 3)
+
+    this.zoomToFocalPoint(scale, {
+      x: event.clientX,
+      y: event.clientY,
+    })
+  }
+
+  /**
+   * Zooms to the given focal point using the provided scale.
+   *
+   * The focal point must be provided in coordinates relative to the window.
+   */
+  private zoomToFocalPoint(scale: number, position: Position) {
+    const relativeFocalPoint = this.getRelativeFocalPoint(position)
+
     const scaleFactor = scale / this._scale
 
     const adjustment = this.getOffsetAdjustment(scaleFactor, relativeFocalPoint)
@@ -871,9 +898,14 @@ export class GraphComponent
       y: this.offset.y - adjustment.y,
     }
 
-    this._scale = scale
+    this.setScale(scale)
 
     this.changeDetectorRef.detectChanges()
+  }
+
+  private setScale(scale: number) {
+    this._scale = scale
+    this.onScale.emit(scale)
   }
 
   /**
@@ -892,12 +924,12 @@ export class GraphComponent
   /**
    * Get position of pointer relative to the parent container
    */
-  private getRelativeFocalPoint({clientX, clientY}: MouseWheelEvent): Position {
+  private getRelativeFocalPoint({x, y}: Position): Position {
     const rect = this.parentContainer.getBoundingClientRect()
 
     return {
-      x: clientX - this.offset.x - rect.x,
-      y: clientY - this.offset.y - rect.y,
+      x: x - this.offset.x - rect.x,
+      y: y - this.offset.y - rect.y,
     }
   }
 }
