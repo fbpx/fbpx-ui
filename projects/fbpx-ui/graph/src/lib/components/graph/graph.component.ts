@@ -275,7 +275,7 @@ export class GraphComponent
     this.log('ngOnInit')
     this.loading$.next(false)
     window.addEventListener('resize', this.onResize)
-    window.addEventListener('wheel', this.onWheel)
+    this.parentContainer.addEventListener('wheel', this.onWheel)
   }
 
   public async ngOnChanges(changes: SimpleChanges) {}
@@ -808,7 +808,7 @@ export class GraphComponent
 
   public ngOnDestroy() {
     window.removeEventListener('resize', this.onResize)
-    window.removeEventListener('wheel', this.onWheel)
+    this.parentContainer.removeEventListener('wheel', this.onWheel)
     this._removeDeselectAreaForLinksHandler()
     this._removeDeselectAreaForNodesHandler()
     // this._removeDeselectAreaForPortsHandler()
