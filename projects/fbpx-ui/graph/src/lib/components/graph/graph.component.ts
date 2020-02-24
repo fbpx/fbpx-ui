@@ -369,7 +369,7 @@ export class GraphComponent
     const halfWidth = rect.width / 2
 
     const offsetY = halfHeight - (coords.bottom * coords.scale) / 2
-    const offsetX = -(coords.left * this._scale)
+    const offsetX = -(coords.left * coords.scale)
 
     this.offset = {
       x: offsetX + halfWidth - (coords.width * coords.scale) / 2,
