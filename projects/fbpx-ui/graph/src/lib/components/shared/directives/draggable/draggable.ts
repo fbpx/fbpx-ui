@@ -21,7 +21,7 @@ export class DraggableDirective implements AfterViewInit, OnChanges {
   @Output() public onDrag = new EventEmitter()
   @Output() public onDragStart = new EventEmitter()
   @Output() public onDragEnd = new EventEmitter()
-  @Input() public onDragInit: (event: MouseEvent) => boolean
+  @Input() public onDragInit: (event: PointerEvent) => boolean
   @Input() public dragSource: boolean = true
   @Input() public dragTarget
   @Input() public dragScale = 1
@@ -80,7 +80,7 @@ export class DraggableDirective implements AfterViewInit, OnChanges {
     this._dragTarget = this.determineDragTarget()
 
     if (this.dragEnabled) {
-      this._dragTarget.addEventListener('mousedown', this.onStartDrag)
+      this._dragTarget.addEventListener('pointerdown', this.onStartDrag)
     }
   }
 
@@ -104,7 +104,7 @@ export class DraggableDirective implements AfterViewInit, OnChanges {
     return event.button === 2 || event.buttons === 2
   }
 
-  public onStartDrag(event: MouseEvent) {
+  public onStartDrag(event: PointerEvent) {
     if (this.isRightClick(event)) {
       return
     }
@@ -117,11 +117,11 @@ export class DraggableDirective implements AfterViewInit, OnChanges {
       return
     }
 
-    document.addEventListener('mousemove', this.onDragging)
-    document.addEventListener('mouseup', this.endDrag)
+    document.addEventListener('pointermove', this.onDragging)
+    document.addEventListener('pointerup', this.endDrag)
   }
 
-  public async onDragging(event: MouseEvent): Promise<void> {
+  public async onDragging(event: PointerEvent): Promise<void> {
     if (!this.dragging) {
       this.dragging = true
       const dragData = this._dragStrategy.onStartDrag(event)
@@ -132,7 +132,7 @@ export class DraggableDirective implements AfterViewInit, OnChanges {
     }
   }
 
-  public async _onDragging(event: MouseEvent): Promise<void> {
+  public async _onDragging(event: PointerEvent): Promise<void> {
     const dragData = await this._dragStrategy.onDragging(event)
 
     if (dragData) {
@@ -140,9 +140,9 @@ export class DraggableDirective implements AfterViewInit, OnChanges {
     }
   }
 
-  public endDrag(event: MouseEvent): void {
-    document.removeEventListener('mousemove', this.onDragging)
-    document.removeEventListener('mouseup', this.endDrag)
+  public endDrag(event: PointerEvent): void {
+    document.removeEventListener('pointermove', this.onDragging)
+    document.removeEventListener('pointerup', this.endDrag)
 
     if (this.dragging) {
       const position = this._dragStrategy.endDrag(event)

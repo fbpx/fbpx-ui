@@ -22,7 +22,7 @@ import {getCoords, Position, writeTransform} from '@fbpx-ui/core'
 import {LinkComponent, LinkEvent} from '../link/link.component'
 import {
   NodeComponent,
-  NodeMouseEvent,
+  NodePointerEvent,
   PortPositions,
   NodePortEvent,
   TargetPortToggleEvent,
@@ -69,7 +69,7 @@ export interface NodeInfo {
 
 export type ConnectorWithPosition = Connector & Position
 
-export interface GraphNodeMouseEvent extends NodeMouseEvent {
+export interface GraphNodePointerEvent extends NodePointerEvent {
   graph: Flow
 }
 
@@ -171,7 +171,7 @@ export class GraphComponent
   /**
    * Triggers when a node is clicked
    */
-  @Output() public onNodeClick = new EventEmitter<GraphNodeMouseEvent>()
+  @Output() public onNodeClick = new EventEmitter<GraphNodePointerEvent>()
   /**
    * Triggers when a node is added to the canvas by a drop event
    */
@@ -194,7 +194,7 @@ export class GraphComponent
    */
   @Output() public onInputPortEnter = new EventEmitter<NodePortEvent>()
   /**
-   * Triggers on mouse leave of an input port
+   * Triggers on pointerleave of an input port
    */
   @Output() public onInputPortLeave = new EventEmitter<NodePortEvent>()
   /**
@@ -202,11 +202,11 @@ export class GraphComponent
    */
   @Output() public onInputPortPressed = new EventEmitter<NodePortEvent>()
   /**
-   * Triggers on mouse enter of an output port
+   * Triggers on pointer enter of an output port
    */
   @Output() public onOutputPortEnter = new EventEmitter<NodePortEvent>()
   /**
-   * Triggers on mouse leave of an output port
+   * Triggers on pointer leave of an output port
    */
   @Output() public onOutputPortLeave = new EventEmitter<NodePortEvent>()
   /**
@@ -549,7 +549,7 @@ export class GraphComponent
   /**
    * Executes when a node drag is initiated
    */
-  public onNodeDragInit = (event: MouseEvent) => {
+  public onNodeDragInit = (event: PointerEvent) => {
     this.log('onNodeDragInit')
     if (event.ctrlKey) {
       return false
@@ -657,7 +657,7 @@ export class GraphComponent
   }
 
   /**
-   * Executed when a target port is entered or left using the mouse.
+   * Executed when a target port is entered or left.
    */
   public onToggleTargetPort({id, port, isTarget}: TargetPortToggleEvent) {
     this.log('onToggleTargetPort')
@@ -693,8 +693,8 @@ export class GraphComponent
     }
 
     this.zone.runOutsideAngular(() => {
-      this.parentContainer.addEventListener('mousemove', this.onEdgeDraw)
-      this.parentContainer.addEventListener('mouseup', this.onEdgeFinish)
+      this.parentContainer.addEventListener('pointermove', this.onEdgeDraw)
+      this.parentContainer.addEventListener('pointerup', this.onEdgeFinish)
     })
   }
 
@@ -702,10 +702,8 @@ export class GraphComponent
    * Position with scale one works ok, needs tiny fix.
    *
    * onEdgeDraw receives the direct x, y coordinates during drag.
-   *
-   * @param position
    */
-  public onEdgeDraw = position => {
+  public onEdgeDraw = ({clientX, clientY}: PointerEvent) => {
     this.log('onEdgeDraw')
     if (!this.editable) {
       return
@@ -716,8 +714,8 @@ export class GraphComponent
     const target = {
       id: null,
       port: null,
-      x: (position.clientX - nodeOffset.x) / this._scale,
-      y: (position.clientY - nodeOffset.y) / this._scale,
+      x: (clientX - nodeOffset.x) / this._scale,
+      y: (clientY - nodeOffset.y) / this._scale,
     }
 
     const drawEdge = {
@@ -759,8 +757,8 @@ export class GraphComponent
     this.drawEdge$.next(null)
     this.targetPort = null
 
-    this.parentContainer.removeEventListener('mousemove', this.onEdgeDraw)
-    this.parentContainer.removeEventListener('mouseup', this.onEdgeFinish)
+    this.parentContainer.removeEventListener('pointermove', this.onEdgeDraw)
+    this.parentContainer.removeEventListener('pointerup', this.onEdgeFinish)
 
     this.changeDetectorRef.detectChanges()
   }
@@ -866,7 +864,7 @@ export class GraphComponent
     }
   }
 
-  private onWheel = (event: MouseWheelEvent) => {
+  private onWheel = (event: PointerWheelEvent) => {
     const delta =
       event.deltaY === 0 && event.deltaX ? event.deltaX : event.deltaY
     const wheel = delta < 0 ? 1 : -1

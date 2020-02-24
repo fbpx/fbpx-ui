@@ -14,7 +14,7 @@ import {Port} from '../graph/models'
 import {Position} from '@fbpx-ui/core'
 
 export interface PortEvent {
-  event: MouseEvent
+  event: PointerEvent
   port: Port
   portComponent: PortComponent
 }
@@ -33,8 +33,8 @@ export interface PortEvent {
 export class PortComponent implements OnDestroy {
   @Input() public port: Port
   @Output() public onPress = new EventEmitter<PortEvent>()
-  @Output() public onMouseEnter = new EventEmitter<PortEvent>()
-  @Output() public onMouseLeave = new EventEmitter<PortEvent>()
+  @Output() public onPointerEnter = new EventEmitter<PortEvent>()
+  @Output() public onPointerLeave = new EventEmitter<PortEvent>()
   @ViewChild('portCircle') public portCircle: ElementRef
 
   public isActive = false
@@ -42,9 +42,9 @@ export class PortComponent implements OnDestroy {
   constructor(private elementRef: ElementRef) {
     const element = this.elementRef.nativeElement
 
-    element.addEventListener('mousedown', this.handleMouseDown)
-    element.addEventListener('mouseleave', this.handleMouseLeave)
-    element.addEventListener('mouseenter', this.handleMouseEnter)
+    element.addEventListener('pointerdown', this.handlePointerDown)
+    element.addEventListener('pointerleave', this.handlePointerLeave)
+    element.addEventListener('pointerenter', this.handlePointerEnter)
   }
 
   @HostBinding('attr.width')
@@ -60,28 +60,28 @@ export class PortComponent implements OnDestroy {
   public ngOnDestroy() {
     const element = this.elementRef.nativeElement
 
-    element.removeEventListener('mousedown', this.handleMouseDown)
-    element.removeEventListener('mouseleave', this.handleMouseLeave)
-    element.removeEventListener('mouseenter', this.handleMouseEnter)
+    element.removeEventListener('pointerdown', this.handlePointerDown)
+    element.removeEventListener('pointerleave', this.handlePointerLeave)
+    element.removeEventListener('pointerenter', this.handlePointerEnter)
   }
 
-  private handleMouseEnter = (event: MouseEvent): void => {
-    this.onMouseEnter.emit({
+  private handlePointerEnter = (event: PointerEvent): void => {
+    this.onPointerEnter.emit({
       event,
       port: this.port,
       portComponent: this,
     })
   }
 
-  private handleMouseLeave = (event: MouseEvent): void => {
-    this.onMouseLeave.emit({
+  private handlePointerLeave = (event: PointerEvent): void => {
+    this.onPointerLeave.emit({
       event,
       port: this.port,
       portComponent: this,
     })
   }
 
-  private handleMouseDown = (event: MouseEvent): void => {
+  private handlePointerDown = (event: PointerEvent): void => {
     event.stopPropagation()
 
     this.isActive = true

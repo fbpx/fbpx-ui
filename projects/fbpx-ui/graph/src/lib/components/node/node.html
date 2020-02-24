@@ -3,10 +3,10 @@
   [ngClass]="nodeClasses"
   (click)="handleEvent('onClick', $event)"
   (dblclick)="handleEvent('onDoubleClick', $event)"
-  (mouseover)="handleEvent('onMouseOver', $event)"
-  (mouseleave)="handleEvent('onMouseLeave', $event)"
-  (mousedown)="handleEvent('onMouseDown', $event)"
-  (mouseup)="handleEvent('onMouseUp', $event)"
+  (onPointerOver)="handleEvent('onPointerOver', $event)"
+  (onPointerLeave)="handleEvent('onPointerLeave', $event)"
+  (onPointerDown)="handleEvent('onPointerDown', $event)"
+  (onPointerUp)="handleEvent('onPointerUp', $event)"
 >
   <div class="node-heading">
     <div class="node-title">{{node.title || node.name}}</div>
@@ -25,8 +25,8 @@
             fbpx-graph-port
             [stopEventPropagation]="['click']"
             [port]="port"
-            (onMouseEnter)="handleInputPortEnter(port, $event)"
-            (onMouseLeave)="handleInputPortLeave(port, $event)"
+            (onPointerEnter)="handleInputPortEnter(port, $event)"
+            (onPointerLeave)="handleInputPortLeave(port, $event)"
             (onPress)="handleInputPortPressed(port, $event)"
             [ngClass]="port.classes"
             [attr.title]="node.title"
@@ -46,8 +46,8 @@
             #outputPort
             fbpx-graph-port
             [port]="port"
-            (onMouseEnter)="handleOutputPortEnter(port, $event)"
-            (onMouseLeave)="handleOutputPortLeave(port, $event)"
+            (onPointerEnter)="handleOutputPortEnter(port, $event)"
+            (onPointerLeave)="handleOutputPortLeave(port, $event)"
             (onPress)="handleOutputPortPressed(port, $event)"
             [ngClass]="port.classes"
           ></svg>

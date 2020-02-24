@@ -18,7 +18,7 @@ export interface LinkEvent {
   link: Link
   linkComponent: LinkComponent
   element: HTMLElement
-  event: MouseEvent
+  event: PointerEvent
 }
 
 @Component({
@@ -111,7 +111,7 @@ export class LinkComponent implements OnChanges {
     )
   }
 
-  public onClick(event: MouseEvent) {
+  public onClick(event: PointerEvent) {
     event.stopPropagation()
 
     this.onLinkSelection.emit({

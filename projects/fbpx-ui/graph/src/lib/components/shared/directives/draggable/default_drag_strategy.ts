@@ -39,7 +39,7 @@ export class DefaultDragStrategy extends DragStrategy<DragData> {
     this.settings = settings
   }
 
-  public onInitDrag(event: MouseEvent): void {
+  public onInitDrag(event: PointerEvent): void {
     const x = event.x / this.settings.dragScale
     const y = event.y / this.settings.dragScale
 
@@ -58,7 +58,7 @@ export class DefaultDragStrategy extends DragStrategy<DragData> {
     this.lastRenderPos = this.startPosition
   }
 
-  public onStartDrag(event: MouseEvent): DragData {
+  public onStartDrag(event: PointerEvent): DragData {
     return this.startPosition
   }
 
@@ -68,7 +68,7 @@ export class DefaultDragStrategy extends DragStrategy<DragData> {
     return transform ? readTransform(transform) : {translate: ['0px', '0px']}
   }
 
-  public async onDragging(event: MouseEvent): Promise<DragData> {
+  public async onDragging(event: PointerEvent): Promise<DragData> {
     const dragData = this.getDragData(event)
     return new Promise(resolve => {
       if (
@@ -87,7 +87,7 @@ export class DefaultDragStrategy extends DragStrategy<DragData> {
     })
   }
 
-  public getDragData(event: MouseEvent): DragData {
+  public getDragData(event: PointerEvent): DragData {
     const eventX = event.x / this.settings.dragScale
     const eventY = event.y / this.settings.dragScale
 
@@ -105,7 +105,7 @@ export class DefaultDragStrategy extends DragStrategy<DragData> {
     }
   }
 
-  public endDrag(event: MouseEvent): Position {
+  public endDrag(event: PointerEvent): Position {
     return this.getDragData(event)
   }
 

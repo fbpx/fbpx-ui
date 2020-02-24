@@ -36,16 +36,16 @@ export interface PortPositions {
 
 export type NodeHandlers =
   | 'onClick'
-  | 'onMouseDown'
-  | 'onMouseUp'
-  | 'onMouseOver'
-  | 'onMouseLeave'
+  | 'onPointerDown'
+  | 'onPointerUp'
+  | 'onPointerOver'
+  | 'onPointerLeave'
   | 'onDoubleClick'
 
-export interface NodeMouseEvent {
+export interface Nodeg {
   node: Node
   nodeComponent: NodeComponent
-  event: MouseEvent
+  event: g
 }
 
 export interface NodePortEvent {
@@ -54,7 +54,7 @@ export interface NodePortEvent {
   port: Port
   portComponent: PortComponent
   nodeComponent: NodeComponent
-  event: MouseEvent
+  event: g
 }
 
 export interface TargetPortToggleEvent {
@@ -63,7 +63,7 @@ export interface TargetPortToggleEvent {
   portComponent: PortComponent
   nodeComponent: NodeComponent
   isTarget: boolean
-  event: MouseEvent
+  event: g
 }
 
 export interface PortPositions {
@@ -143,32 +143,32 @@ export class NodeComponent implements OnInit, AfterViewInit {
   /**
    * EventEmitter which will be triggered when a node is clicked.
    */
-  @Output() public onClick = new EventEmitter<NodeMouseEvent>()
+  @Output() public onClick = new EventEmitter<Nodeg>()
 
   /**
    * EventEmitter which will be triggered when a node is double clicked.
    */
-  @Output() public onDoubleClick = new EventEmitter<NodeMouseEvent>()
+  @Output() public onDoubleClick = new EventEmitter<Nodeg>()
 
   /**
    * EventEmitter which will be triggered when a node is hovered.
    */
-  @Output() public onMouseOver = new EventEmitter<NodeMouseEvent>()
+  @Output() public onPointerOver = new EventEmitter<Nodeg>()
 
   /**
    * EventEmitter which will be triggered when a node is left.
    */
-  @Output() public onMouseLeave = new EventEmitter<NodeMouseEvent>()
+  @Output() public onPointerLeave = new EventEmitter<Nodeg>()
 
   /**
-   * EventEmitter which will be triggered on mouse down.
+   * EventEmitter which will be triggered on pointer down.
    */
-  @Output() public onMouseDown = new EventEmitter<NodeMouseEvent>()
+  @Output() public onPointerDown = new EventEmitter<Nodeg>()
 
   /**
-   * EventEmitter which will be triggered on mouse up.
+   * EventEmitter which will be triggered on pointer up.
    */
-  @Output() public onMouseUp = new EventEmitter<NodeMouseEvent>()
+  @Output() public onPointerUp = new EventEmitter<Nodeg>()
 
   /**
    * EventEmitter which will trigger whenever context is updated.
@@ -358,7 +358,7 @@ export class NodeComponent implements OnInit, AfterViewInit {
     this.changeDetectorRef.detectChanges()
   }
 
-  public handleEvent(handler: NodeHandlers, event: MouseEvent) {
+  public handleEvent(handler: NodeHandlers, event: PointerEvent) {
     this[handler].emit({
       node: this.node,
       nodeComponent: this,

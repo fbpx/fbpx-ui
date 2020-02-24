@@ -12,7 +12,7 @@ const sense = 1 // 3
 export class PanDragStrategy extends DragStrategy<PanData> {
   private lastRenderPos: PanData
 
-  public onStartDrag(_event: MouseEvent): PanData {
+  public onStartDrag(_event: PointerEvent): PanData {
     this.lastRenderPos = {
       selectionX: 0,
       selectionY: 0,
@@ -23,7 +23,7 @@ export class PanDragStrategy extends DragStrategy<PanData> {
     return this.lastRenderPos
   }
 
-  public async onDragging(event: MouseEvent): Promise<PanData> {
+  public async onDragging(event: PointerEvent): Promise<PanData> {
     const panData: PanData = {
       selectionX: this.lastRenderPos.selectionX + event.movementX,
       selectionY: this.lastRenderPos.selectionY + event.movementY,
@@ -41,7 +41,7 @@ export class PanDragStrategy extends DragStrategy<PanData> {
     return panData
   }
 
-  public endDrag(_event: MouseEvent): PanData {
+  public endDrag(_event: PointerEvent): PanData {
     return this.lastRenderPos
   }
 }
