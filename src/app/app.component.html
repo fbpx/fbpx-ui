@@ -2,7 +2,7 @@
   <div class="card">
     <div class="card-header">
       <div fxLayout="row" fxLayoutAlign="space-between" class="info">
-        <div class="scale-info">Scale: {{ scale$ | async }}</div>
+        <div class="scale-info">Scale: {{ scale$ | async | number }}</div>
         <div class="btn-group btn-group-sm" role="group">
           <button class="btn btn-primary " (click)="zoom(1)">Zoom</button>
           <div ngbDropdown class="d-inline-block" placement="bottom-right">
