@@ -1,4 +1,4 @@
-import {Flow} from '../models'
+import {Node} from '../models'
 import {getGraphBounds} from './getGraphBounds'
 
 export interface AutoScale {
@@ -13,15 +13,15 @@ export interface AutoScale {
 
 export function autoScaleFromElement(
   element: HTMLElement,
-  flow: Flow
+  nodes: Node[]
 ): AutoScale {
   const {width} = element.getBoundingClientRect()
 
-  return autoScale(width, flow)
+  return autoScale(width, nodes)
 }
 
-export function autoScale(width: number, flow: Flow): AutoScale {
-  const bounds = getGraphBounds(flow)
+export function autoScale(width: number, nodes: Node[]): AutoScale {
+  const bounds = getGraphBounds(nodes)
 
   return {
     ...bounds,

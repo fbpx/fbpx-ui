@@ -12,3 +12,5 @@ export interface Node {
     output?: Port[]
   }
 }
+
+export type RenderNode = Node & {renderId: number}

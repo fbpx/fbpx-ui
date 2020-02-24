@@ -24,19 +24,20 @@ import {
   NodeComponent,
   NodeMouseEvent,
   PortPositions,
-  PortUpdate,
   NodePortEvent,
   TargetPortToggleEvent,
+  PortPosition,
 } from '../node'
 import {PanData} from '../shared'
-import {Flow, Link, Node, Connector} from './models'
-import PanZoom from '@panzoom/panzoom'
+import {Flow, Link, Node, Connector, RenderNode, RenderLink} from './models'
 import {DropEvent} from 'ng-drag-drop'
 import {BehaviorSubject} from 'rxjs'
 import uuid from 'uuid'
 import {autoScaleFromElement} from './layout'
-import {PanzoomObject} from '@panzoom/panzoom/dist/src/types'
 import {SelectionManager} from './services'
+
+let nodeRenderId = 0
+let linkRenderId = 0
 
 export interface AddNodeEvent {
   node: Node
@@ -60,7 +61,10 @@ export interface PortInfo {
 }
 
 export interface NodeInfo {
-  [nodeId: string]: NodeDimensions
+  [nodeId: string]: {
+    portPositions: PortPositions
+    dimensions: NodeDimensions
+  }
 }
 
 export type ConnectorWithPosition = Connector & Position
@@ -69,96 +73,12 @@ export interface GraphNodeMouseEvent extends NodeMouseEvent {
   graph: Flow
 }
 
-// the amount to zoom in
-const panZoomDepth = 0.15
-
 @Component({
   selector: 'fbpx-graph',
   changeDetection: ChangeDetectionStrategy.OnPush,
   preserveWhitespaces: false,
   encapsulation: ViewEncapsulation.None,
-  template: `
-    <div
-      #graphContainer
-      class="dropZone"
-      droppable
-      [dropScope]="['nodes']"
-      (onDrop)="onNodeDrop($event)"
-    >
-      <div
-        *ngIf="!(loading$ | async)"
-        #graphElement
-        drag
-        [dragTarget]="graphContainer"
-        [dragEnabled]="panEnabled"
-        [dragScale]="1"
-        [dragSource]="false"
-        (onDrag)="handlePan($event)"
-        (onDragStart)="handlePanStart($event)"
-        (onDragEnd)="handlePanEnd($event)"
-        class="graph"
-      >
-        <svg *ngIf="isInitialized" class="link-canvas">
-          <g
-            class="link-group"
-            #linkGroup
-            [attr.transform]="currentTransformSVG"
-          >
-            <g
-              *ngFor="let link of links; trackBy: linkTracker"
-              fbpx-graph-link
-              (onLinkSelection)="onLinkSelection($event)"
-              [link]="link"
-              [selected]="link.metadata?.ui?.selected"
-              [active]="link.metadata?.ui?.active"
-              [persist]="link.target?.setting?.persist"
-            ></g>
-
-            <g
-              *ngIf="drawEdge$ | async; let drawEdge"
-              fbpx-graph-link
-              class="drawEdge"
-              [link]="drawEdge"
-              [attr.isDragging]="true"
-            ></g>
-          </g>
-        </svg>
-        <div
-          class="node-group"
-          #nodeGroup
-          [ngStyle]="{transform: currentTransform}"
-        >
-          <fbpx-node
-            *ngFor="let node of graph.nodes; trackBy: nodeTracker"
-            [node]="node"
-            [title]="node.title || node.name"
-            (afterViewInit)="afterNodeViewInit($event)"
-            (onToggleTargetPort)="onToggleTargetPort($event)"
-            (onEdgeStart)="onEdgeStart($event)"
-            (onClick)="handleNodeClick($event)"
-            (onInputPortEnter)="onInputPortEnter.emit($event)"
-            (onInputPortLeave)="onInputPortLeave.emit($event)"
-            (onInputPortPressed)="onInputPortPressed.emit($event)"
-            (onOutputPortEnter)="onOutputPortEnter.emit($event)"
-            (onOutputPortLeave)="onOutputPortLeave.emit($event)"
-            (onOutputPortPressed)="onOutputPortPressed.emit($event)"
-            drag
-            [dragScale]="this.panZoomScale && this.computedScale"
-            [dragEnabled]="editable"
-            [onDragInit]="onNodeDragInit"
-            (onDrag)="onNodeMovement(node)"
-            (onDragEnd)="onNodeDragEnd(node, $event)"
-            [style.transform]="
-              node.metadata?.x && node.metadata?.y
-                ? translateNode({x: node.metadata.x, y: node.metadata.y})
-                : ''
-            "
-          >
-          </fbpx-node>
-        </div>
-      </div>
-    </div>
-  `,
+  templateUrl: './graph.component.html',
   styleUrls: ['./graph.scss'],
 })
 export class GraphComponent
@@ -181,15 +101,39 @@ export class GraphComponent
       : ''
   }
 
+  private _graph: Flow
+
+  public nodes$ = new BehaviorSubject<RenderNode[]>([])
+  public links$ = new BehaviorSubject<RenderLink[]>([])
+
   /**
    * The graph model containing all nodes and links.
    */
   @Input()
-  public graph: Flow
+  public set graph(graph: Flow) {
+    this.log('set graph', graph && graph.title)
+    this.resetState()
+    this.initializeNodes(graph.nodes)
+    this.initializeLinks(graph.links)
+    this._graph = graph
+  }
+
+  public get graph(): Flow {
+    return this._graph
+  }
+
+  public initializeNodes(nodes: Node[]) {
+    this.nodes$.next(nodes.map(node => ({renderId: nodeRenderId++, ...node})))
+  }
+
+  public initializeLinks(links: Link[]) {
+    this.links$.next(links.map(link => ({renderId: linkRenderId++, ...link})))
+  }
 
   public _initialScale: number | 'auto'
 
   @Input() public set initialScale(value: number | 'auto') {
+    this.log('set initialScale')
     this._initialScale = value
 
     this.setInitialScale(value)
@@ -199,6 +143,10 @@ export class GraphComponent
     return this._scale
   }
 
+  /**
+   * The zoom factor
+   */
+  @Input() public zoomFactor = 0.3
   /**
    * The maximum scale value
    */
@@ -211,6 +159,10 @@ export class GraphComponent
    * Whether to enabling panning of the canvas
    */
   @Input() public panEnabled: boolean = true
+  /**
+   * Enable debug log
+   */
+  @Input() public debug = false
   /**
    * Triggers when a link has been created.
    */
@@ -277,7 +229,6 @@ export class GraphComponent
     y: 0,
   }
 
-  public panZoomScale: number = 1
   public loading$ = new BehaviorSubject(true)
 
   @ViewChild('graphElement') public graphElementRef: ElementRef
@@ -295,7 +246,6 @@ export class GraphComponent
   private _removeDeselectAreaForPortsHandler: Function
 
   private parentContainer
-  private panZoom: PanzoomObject
   private portInfo: PortInfo = {}
   private nodeInfo: NodeInfo = {}
   private targetPort: Connector
@@ -303,7 +253,7 @@ export class GraphComponent
   private element: HTMLElement
   private cancelClick: boolean = false
   private _autoScale: boolean = false
-  public _scale: number
+  public _scale: number = 1
 
   constructor(
     private changeDetectorRef: ChangeDetectorRef,
@@ -315,26 +265,44 @@ export class GraphComponent
     this.parentContainer = this.element.parentNode || this.element
   }
 
-  public async ngOnInit() {
-    this.loading$.next(false)
-  }
-
-  public async ngOnChanges({graph, scale}: SimpleChanges) {
-    if (graph.currentValue !== graph.previousValue) {
-      setTimeout(() => {
-        this.resetState()
-        this.changeDetectorRef.detectChanges()
-      })
+  public log(...args) {
+    if (this.debug) {
+      console.log(...args)
     }
   }
 
+  public async ngOnInit() {
+    this.log('ngOnInit')
+    this.loading$.next(false)
+    window.addEventListener('resize', this.onResize)
+    window.addEventListener('wheel', this.onWheel)
+  }
+
+  public async ngOnChanges(changes: SimpleChanges) {}
+
+  public logChanges(changes: SimpleChanges) {
+    this.log('Changes:', {
+      graphChanged:
+        changes.graph &&
+        changes.graph.currentValue !== changes.graph.previousValue,
+      scaleChanged:
+        changes.scale &&
+        changes.scale.currentValue !== changes.scale.previousValue,
+    })
+  }
+
+  /**
+   * Resets the internal state.
+   *
+   * Called each time a new graph is passed in as input.
+   */
   public resetState() {
-    this.panZoom = undefined
+    this.log('resetState')
     this.portInfo = {}
     this.nodeInfo = {}
     this.targetPort = undefined
     this.sourcePort = undefined
-    this._scale = undefined
+    this._scale = 1
     this._autoScale = false
     this.linksCreated = false
     this.isInitialized = false
@@ -342,7 +310,6 @@ export class GraphComponent
       x: 0,
       y: 0,
     }
-    this.panZoomScale = 1
     this.setInitialScale(this._initialScale || 'auto')
   }
 
@@ -354,14 +321,18 @@ export class GraphComponent
    * This information is then used to draw the edges between source and target ports.
    */
   public afterNodeViewInit(nodeComponent: NodeComponent) {
-    this.updateNodeDimensions(nodeComponent)
+    this.log('afterNodeViewInit')
+    setTimeout(() => {
+      this.updateNodeDimensions(nodeComponent)
 
-    if (Object.keys(this.nodeInfo).length === this.graph.nodes.length) {
-      this.layoutGraph()
-    }
+      if (Object.keys(this.nodeInfo).length === this.graph.nodes.length) {
+        setTimeout(() => this.layoutGraph())
+      }
+    })
   }
 
   public setInitialScale(value: number | 'auto') {
+    this.log('setInitialScale')
     if (value === 'auto') {
       this._autoScale = true
     } else {
@@ -370,15 +341,18 @@ export class GraphComponent
   }
 
   public zoom(scale: number) {
-    this.panZoom.zoom(scale / panZoomDepth)
     this.changeDetectorRef.detectChanges()
   }
 
-  public autoScale() {
-    const coords = autoScaleFromElement(this.parentContainer, this.graph)
+  public onResize = (event: UIEvent) => {
+    this.log('onResize')
+  }
 
-    this.panZoomScale = 1 / panZoomDepth
-    this._scale = coords.scale * panZoomDepth
+  public autoScale(nodes: Node[]) {
+    this.log('autoScale')
+    const coords = autoScaleFromElement(this.parentContainer, nodes)
+
+    this._scale = coords.scale
 
     const rect = this.parentContainer.getBoundingClientRect()
 
@@ -390,38 +364,29 @@ export class GraphComponent
 
     this.offset = {
       x: offsetX + halfWidth - (coords.width * this._scale) / 2,
-      y: offsetY - halfHeight / this.panZoomScale,
+      y: offsetY - halfHeight,
     }
     this.changeDetectorRef.detectChanges()
   }
 
-  public panZoomChange = change => {
-    this.panZoomScale = change.detail.scale
-
-    this.onScale.emit(this.computedScale)
-  }
-
-  public get computedScale() {
-    return this.panZoomScale * this._scale
-  }
-
   public ngAfterViewInit() {
+    this.log('afterViewInit')
+    /*
+    this.log('nodeComponentsLength?', this.nodeComponents.length)
+    this.nodeComponents.changes.subscribe(this.nodeComponentsListChanged)
+    */
     this.afterViewInit.emit(this.parentContainer)
   }
 
-  public initializeGraph() {
-    this.panZoom = PanZoom(this.graphElementRef.nativeElement, {
-      startScale: this.panZoomScale,
-      disablePan: true,
-      maxScale: this.maxScale,
-      contain: 'outside',
-    })
+  public nodeComponentsListChanged = (value: QueryList<NodeComponent>) => {
+    this.log('No of node components', this.nodeComponents.length, value)
+    if (value.last) {
+      this.updateNodeDimensions(value.last)
+    }
+  }
 
-    this.parentContainer.addEventListener('wheel', this.panZoom.zoomWithWheel)
-    this.graphElementRef.nativeElement.addEventListener(
-      'panzoomchange',
-      this.panZoomChange
-    )
+  public initializeGraph() {
+    this.log('initializeGraph')
 
     this._removeDeselectAreaForNodesHandler = this.selectionManager.nodeSelector.addDeselectArea(
       this.parentContainer
@@ -430,8 +395,6 @@ export class GraphComponent
       this.parentContainer
     )
 
-    this.isInitialized = true
-
     /* Don't automatically deselect ports
     this._removeDeselectAreaForPortsHandler = this.selectionManager.addDeselectArea(
       this.parentContainer
@@ -439,41 +402,54 @@ export class GraphComponent
     */
   }
 
+  public currentGraph: Flow
+
+  public nodes: Node[]
   /**
    * This method is called as soon as all node positions are known.
    */
   public layoutGraph() {
-    const graph = {
-      ...this.graph,
-      nodes: this.graph.nodes.map(node => ({
-        ...node,
-        metadata: {
-          ...node.metadata,
-          ...this.nodeInfo[node.id], // add dimensions
-        },
-      })),
-    }
-
-    this.graph = graph
+    this.log('layoutGraph')
+    const nodes = this.nodes$.getValue().map(node => ({
+      ...node,
+      metadata: {
+        ...node.metadata,
+        ...this.nodeInfo[node.id].dimensions, // add dimensions
+      },
+    }))
 
     if (this._autoScale) {
-      this.autoScale()
+      this.autoScale(nodes)
     }
+
+    this.nodes$.next(nodes)
 
     this.initializeGraph()
 
+    this.changeDetectorRef.detectChanges()
+
     setTimeout(() => {
-      for (const nodeComponent of this.nodeComponents) {
-        this.updatePortPositionsForNode(nodeComponent)
-      }
-
-      this.createViewModelLinks(this.graph.links)
-
-      this.changeDetectorRef.detectChanges()
+      this.isInitialized = true
+      this.buildLinks()
     })
   }
 
+  public buildLinks() {
+    // just only now collect all port positions.
+    for (const nodeComponent of this.nodeComponents) {
+      this.updatePortPositionsForNode(
+        nodeComponent.node.id,
+        nodeComponent.getPortPositions(this._scale)
+      )
+    }
+    // now all correct portInfo is set.
+    this.updateLinkPositions()
+
+    this.changeDetectorRef.detectChanges()
+  }
+
   public ngAfterContentInit() {
+    this.log('ngAfterContentInit')
     this.afterContentInit.emit(this.parentContainer)
   }
 
@@ -483,39 +459,34 @@ export class GraphComponent
    * These positions are based on whatever is the current location of the source and target ports.
    */
   public links: Link[] = []
-  public createViewModelLinks(links: Link[]) {
-    this.links = []
-
-    for (const link of links) {
-      const _link = this.makeLink(link)
-      if (_link) {
-        this.links.push(_link)
-      }
-    }
+  public updateLinkPositions() {
+    this.links$.next(this.links$.getValue().map(link => this.updateLink(link)))
   }
 
   public updateViewModelLinksForNodes(nodeIds: string[]) {
-    this.links = this.links
-      .map(link => {
+    this.log('updateViewModelLinksForNodes')
+    this.links$.next(
+      this.links$.getValue().map(link => {
         if (
           nodeIds.includes(link.source.id) ||
           nodeIds.includes(link.target.id)
         ) {
-          return this.makeLink(link)
+          return this.updateLink(link)
         }
 
         return link
       })
-      .filter(link => link !== null)
+    )
   }
 
   /**
    * Executes during panning of the canvas.
    */
   public handlePan(data: PanData) {
+    this.log('handlePan')
     this.offset = {
-      x: this.offset.x + data.movementX / this.panZoomScale,
-      y: this.offset.y + data.movementY / this.panZoomScale,
+      x: this.offset.x + data.movementX,
+      y: this.offset.y + data.movementY,
     }
 
     this.onPan.emit({
@@ -530,13 +501,14 @@ export class GraphComponent
    * Api to allow panning to a node.
    */
   public panToNode(nodeId: string) {
-    const node = this.graph.nodes.find(item => item.id === nodeId)
+    this.log('panToNode')
+    const node = this.nodes$.getValue().find(item => item.id === nodeId)
 
     const rect = this.graphElementRef.nativeElement.getBoundingClientRect()
     if (node) {
       this.offset = {
-        x: (rect.width / 2 - node.metadata.x) * this.computedScale,
-        y: (rect.height / 2 - node.metadata.y) * this.computedScale,
+        x: (rect.width / 2 - node.metadata.x) * this._scale,
+        y: (rect.height / 2 - node.metadata.y) * this._scale,
       }
 
       this.changeDetectorRef.detectChanges()
@@ -547,6 +519,7 @@ export class GraphComponent
    * Executes when panning starts.
    */
   public handlePanStart(_event) {
+    this.log('handlePanStart')
     this.selectionManager.lockAll()
   }
 
@@ -554,6 +527,7 @@ export class GraphComponent
    * Executes when panning has ended.
    */
   public handlePanEnd(_event) {
+    this.log('handlePanEnd')
     setTimeout(() => {
       this.selectionManager.unlockAll()
     })
@@ -564,6 +538,7 @@ export class GraphComponent
    * Executes when a node drag is initiated
    */
   public onNodeDragInit = (event: MouseEvent) => {
+    this.log('onNodeDragInit')
     if (event.ctrlKey) {
       return false
     }
@@ -574,6 +549,7 @@ export class GraphComponent
    *  Executes whenever a node drag has finished.
    */
   public onNodeDragEnd(node: Node, {x, y}) {
+    this.log('onNodeDragEnd')
     if (!this.editable) {
       return
     }
@@ -591,34 +567,37 @@ export class GraphComponent
   }
 
   public onNodeResize(nodeComponent: NodeComponent) {
+    this.log('onNodeResize')
     if (this.isInitialized) {
-      this.updatePortPositionsForNode(nodeComponent)
+      this.updatePortPositionsForNode(
+        nodeComponent.node.id,
+        nodeComponent.getPortPositions(this._scale)
+      )
+      this.updateViewModelLinksForNodes([nodeComponent.node.id])
       this.changeDetectorRef.detectChanges()
     }
   }
 
-  public updatePortPositionsForNode(nodeComponent: NodeComponent) {
-    if (nodeComponent) {
-      const {
-        node: {id: nodeId},
-      } = nodeComponent
-      const {input, output} = nodeComponent.getPortPositions()
+  public updatePortPositionsForNode(
+    nodeId: string,
+    portPositions: PortPositions
+  ) {
+    this.log('updatePortPositionsForNode')
+    const {input, output} = portPositions
 
-      const nodeGroupOffset = this.nodeGroupRef.nativeElement.getBoundingClientRect()
+    const nodeGroupOffset = this.nodeGroupRef.nativeElement.getBoundingClientRect()
 
-      this.updatePortPositions(input, nodeGroupOffset)
-      this.updatePortPositions(output, nodeGroupOffset)
+    this.updatePortPositions(input, nodeGroupOffset)
+    this.updatePortPositions(output, nodeGroupOffset)
 
-      this.portInfo[nodeId] = {input, output}
-
-      this.updateViewModelLinksForNodes([nodeId])
-    }
+    this.portInfo[nodeId] = {input, output}
   }
 
   /**
    * Executes whenever a node is moved across the canvas.
    */
   public onNodeMovement(node: Node) {
+    this.log('onNodeMovement')
     if (!this.editable) {
       return
     }
@@ -627,20 +606,34 @@ export class GraphComponent
       item => item.node.id === node.id
     )
 
-    this.updatePortPositionsForNode(nodeComponent)
+    this.updatePortPositionsForNode(
+      node.id,
+      nodeComponent.getPortPositions(this._scale)
+    )
+    this.updateViewModelLinksForNodes([nodeComponent.node.id])
 
     // removing this will cause lag for the edges during drag.
     this.changeDetectorRef.detectChanges()
   }
 
-  public updateNodeDimensions({width, height, node: {id}}: NodeComponent) {
-    this.nodeInfo[id] = {width, height}
+  public updateNodeDimensions(nodeComponent) {
+    this.log('updateNodeDimensions')
+    const {
+      width,
+      height,
+      node: {id},
+    } = nodeComponent
+    this.log('Getting port positions with current scale', this._scale)
+    const positions = nodeComponent.getPortPositions()
+
+    this.nodeInfo[id] = {dimensions: {width, height}, portPositions: positions}
   }
 
   /**
    * Executed when any of the nodes is clicked upon.
    */
   public handleNodeClick(event) {
+    this.log('handleNodeClick')
     if (!this.cancelClick) {
       this.onNodeClick.emit({
         ...event,
@@ -655,6 +648,7 @@ export class GraphComponent
    * Executed when a target port is entered or left using the mouse.
    */
   public onToggleTargetPort({id, port, isTarget}: TargetPortToggleEvent) {
+    this.log('onToggleTargetPort')
     if (!this.editable) {
       return
     }
@@ -672,12 +666,19 @@ export class GraphComponent
   /**
    * Executed when an edge is started.
    */
-  public onEdgeStart({id, port}) {
+  public onEdgeStart({id, port: portName}) {
+    this.log('onEdgeStart')
     if (!this.editable) {
       return
     }
 
-    this.sourcePort = this.portInfo[id].output[port]
+    const port = this.portInfo[id].output[portName]
+
+    this.sourcePort = {
+      ...port,
+      x: port.x / this._scale,
+      y: port.y / this._scale,
+    }
 
     this.zone.runOutsideAngular(() => {
       this.parentContainer.addEventListener('mousemove', this.onEdgeDraw)
@@ -693,6 +694,7 @@ export class GraphComponent
    * @param position
    */
   public onEdgeDraw = position => {
+    this.log('onEdgeDraw')
     if (!this.editable) {
       return
     }
@@ -702,16 +704,16 @@ export class GraphComponent
     const target = {
       id: null,
       port: null,
-      x: (position.clientX - nodeOffset.x) / this.computedScale,
-      y: (position.clientY - nodeOffset.y) / this.computedScale,
+      x: (position.clientX - nodeOffset.x) / this._scale,
+      y: (position.clientY - nodeOffset.y) / this._scale,
     }
 
     const drawEdge = {
       id: uuid.v4(),
       source: this.sourcePort,
       target,
-      sourceX: this.sourcePort.x,
-      sourceY: this.sourcePort.y,
+      sourceX: this.sourcePort.x * this._scale,
+      sourceY: this.sourcePort.y * this._scale,
       targetX: target.x,
       targetY: target.y,
     }
@@ -791,17 +793,19 @@ export class GraphComponent
   }
 
   public ngOnDestroy() {
+    window.removeEventListener('resize', this.onResize)
+    window.removeEventListener('wheel', this.onWheel)
     this._removeDeselectAreaForLinksHandler()
     this._removeDeselectAreaForNodesHandler()
     // this._removeDeselectAreaForPortsHandler()
   }
 
   public linkTracker = (_index, item) => {
-    return `${this.graph.id}-${item.id}`
+    return item.renderId
   }
 
   public nodeTracker = (_index, item) => {
-    return `${this.graph.id}-${item.id}`
+    return item.renderId
   }
 
   /**
@@ -811,7 +815,7 @@ export class GraphComponent
    *
    * The PortInfo contains the location of the ports.
    */
-  private makeLink(link: Link): Link | null {
+  private updateLink(link: RenderLink): RenderLink | null {
     const source = this.portInfo[link.source.id]
     const target = this.portInfo[link.target.id]
 
@@ -819,34 +823,81 @@ export class GraphComponent
       const sourcePort = source.output[link.source.port]
       const targetPort = target.input[link.target.port]
 
-      return {
-        id: link.id,
-        sourceX: sourcePort.x,
-        sourceY: sourcePort.y,
-        targetX: targetPort.x,
-        targetY: targetPort.y,
-        source: {
-          ...link.source,
-          ...sourcePort,
-        },
-        target: {
-          ...link.target,
-          ...targetPort,
-        },
-        metadata: link.metadata,
+      const hasChanged =
+        sourcePort.x !== link.sourceX ||
+        sourcePort.y !== link.sourceY ||
+        targetPort.x !== link.targetX ||
+        targetPort.y !== link.targetY
+
+      if (hasChanged) {
+        return {
+          ...link,
+          sourceX: sourcePort.x,
+          sourceY: sourcePort.y,
+          targetX: targetPort.x,
+          targetY: targetPort.y,
+          renderId: ++linkRenderId,
+        }
       }
     }
 
-    return null
+    return link
   }
 
   private updatePortPositions(
-    ports: {[key: string]: PortUpdate},
+    ports: {[key: string]: PortPosition},
     offset: Position
   ) {
     for (const [name, port] of Object.entries(ports)) {
-      port.x = (ports[name].x - offset.x) / this.computedScale
-      port.y = (ports[name].y - offset.y) / this.computedScale
+      port.x = ports[name].x - offset.x / this._scale
+      port.y = ports[name].y - offset.y / this._scale
+    }
+  }
+
+  onWheel = (event: MouseWheelEvent) => {
+    const delta =
+      event.deltaY === 0 && event.deltaX ? event.deltaX : event.deltaY
+    const wheel = delta < 0 ? 1 : -1
+
+    const relativeFocalPoint = this.getRelativeFocalPoint(event)
+
+    const scale = this._scale * Math.exp((wheel * this.zoomFactor) / 3)
+    const scaleFactor = scale / this._scale
+
+    const adjustment = this.getOffsetAdjustment(scaleFactor, relativeFocalPoint)
+
+    this.offset = {
+      x: this.offset.x - adjustment.x,
+      y: this.offset.y - adjustment.y,
+    }
+
+    this._scale = scale
+
+    this.changeDetectorRef.detectChanges()
+  }
+
+  /**
+   * Calculate the difference between the original point
+   * and the new scaled position of this point.
+   *
+   * Which will give the amount the new offset has to be adjusted.
+   */
+  private getOffsetAdjustment(scaleFactor: number, {x, y}: Position): Position {
+    return {
+      x: x * scaleFactor - x,
+      y: y * scaleFactor - y,
+    }
+  }
+
+  /**
+   * Get position of pointer relative to the parent container
+   */
+  private getRelativeFocalPoint({clientX, clientY}: MouseWheelEvent): Position {
+    const rect = this.parentContainer.getBoundingClientRect()
+
+    return {
+      x: clientX - this.offset.x - rect.x,
+      y: clientY - this.offset.y - rect.y,
     }
   }
 }

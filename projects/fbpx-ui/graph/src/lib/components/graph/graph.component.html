@@ -1,0 +1,78 @@
+<div
+  #graphContainer
+  class="dropZone"
+  droppable
+  [dropScope]="['nodes']"
+  (onDrop)="onNodeDrop($event)"
+>
+  <div
+    #graphElement
+    drag
+    [dragTarget]="graphContainer"
+    [dragEnabled]="panEnabled"
+    [dragScale]="1"
+    [dragSource]="false"
+    (onDrag)="handlePan($event)"
+    (onDragStart)="handlePanStart($event)"
+    (onDragEnd)="handlePanEnd($event)"
+    class="graph"
+  >
+    <svg *ngIf="isInitialized" class="link-canvas">
+      <g class="link-group" #linkGroup [attr.transform]="currentTransformSVG">
+        <g
+          *ngFor="let link of links$ | async; trackBy: linkTracker"
+          fbpx-graph-link
+          (onLinkSelection)="onLinkSelection($event)"
+          [link]="link"
+          [selected]="link.metadata?.ui?.selected"
+          [active]="link.metadata?.ui?.active"
+          [persist]="link.target?.setting?.persist"
+        ></g>
+
+        <g
+          *ngIf="drawEdge$ | async; let drawEdge"
+          fbpx-graph-link
+          class="drawEdge"
+          [link]="drawEdge"
+          [attr.isDragging]="true"
+        ></g>
+      </g>
+    </svg>
+    <div
+      class="node-group"
+      #nodeGroup
+      [ngStyle]="{
+        transform: currentTransform,
+        visibility: isInitialized ? 'visible' : 'hidden'
+      }"
+    >
+      <fbpx-node
+        *ngFor="let node of nodes$ | async; trackBy: nodeTracker"
+        [node]="node"
+        [title]="node.title || node.name"
+        (afterViewInit)="afterNodeViewInit($event)"
+        (onToggleTargetPort)="onToggleTargetPort($event)"
+        (onEdgeStart)="onEdgeStart($event)"
+        (onClick)="handleNodeClick($event)"
+        (onInputPortEnter)="onInputPortEnter.emit($event)"
+        (onInputPortLeave)="onInputPortLeave.emit($event)"
+        (onInputPortPressed)="onInputPortPressed.emit($event)"
+        (onOutputPortEnter)="onOutputPortEnter.emit($event)"
+        (onOutputPortLeave)="onOutputPortLeave.emit($event)"
+        (onOutputPortPressed)="onOutputPortPressed.emit($event)"
+        drag
+        [dragScale]="this._scale"
+        [dragEnabled]="editable"
+        [onDragInit]="onNodeDragInit"
+        (onDrag)="onNodeMovement(node)"
+        (onDragEnd)="onNodeDragEnd(node, $event)"
+        [style.transform]="
+          node.metadata?.x && node.metadata?.y
+            ? translateNode({x: node.metadata.x, y: node.metadata.y})
+            : ''
+        "
+      >
+      </fbpx-node>
+    </div>
+  </div>
+</div>

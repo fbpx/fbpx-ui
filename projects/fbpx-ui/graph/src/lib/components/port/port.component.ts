@@ -93,12 +93,12 @@ export class PortComponent implements OnDestroy {
     })
   }
 
-  public getPortPosition(): Position {
+  public getPortPosition(scale: number): Position {
     const {x, y} = this.portCircle.nativeElement.getBoundingClientRect()
 
     return {
-      x,
-      y,
+      x: x / scale,
+      y: y / scale,
     }
   }
 }

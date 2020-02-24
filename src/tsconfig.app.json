@@ -5,7 +5,7 @@
     "types": [],
     "paths": {
       "@fbpx-ui/core": ["../projects/fbpx-ui/core/src/public-api.ts"],
-      "@fbpx-ui/graph": ["../projects/fbpx-ui/core/src/public-api.ts"]
+      "@fbpx-ui/graph": ["../projects/fbpx-ui/graph/src/public-api.ts"]
     }
   },
   "files": ["src/main.ts", "src/polyfills.ts"],

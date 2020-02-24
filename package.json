@@ -25,7 +25,6 @@
     "@angular/platform-browser": "~9.0.0",
     "@angular/platform-browser-dynamic": "~9.0.0",
     "@angular/router": "~9.0.0",
-    "@panzoom/panzoom": "^4.0.3",
     "angular-resize-event": "^1.2.1",
     "dagre": "0.8.4",
     "lodash": "^4.17.15",
