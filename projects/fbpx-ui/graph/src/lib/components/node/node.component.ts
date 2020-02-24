@@ -42,10 +42,10 @@ export type NodeHandlers =
   | 'onPointerLeave'
   | 'onDoubleClick'
 
-export interface Nodeg {
+export interface NodePointerEvent {
   node: Node
   nodeComponent: NodeComponent
-  event: g
+  event: PointerEvent
 }
 
 export interface NodePortEvent {
@@ -54,7 +54,7 @@ export interface NodePortEvent {
   port: Port
   portComponent: PortComponent
   nodeComponent: NodeComponent
-  event: g
+  event: PointerEvent
 }
 
 export interface TargetPortToggleEvent {
@@ -63,7 +63,7 @@ export interface TargetPortToggleEvent {
   portComponent: PortComponent
   nodeComponent: NodeComponent
   isTarget: boolean
-  event: g
+  event: PointerEvent
 }
 
 export interface PortPositions {
@@ -143,32 +143,32 @@ export class NodeComponent implements OnInit, AfterViewInit {
   /**
    * EventEmitter which will be triggered when a node is clicked.
    */
-  @Output() public onClick = new EventEmitter<Nodeg>()
+  @Output() public onClick = new EventEmitter<NodePointerEvent>()
 
   /**
    * EventEmitter which will be triggered when a node is double clicked.
    */
-  @Output() public onDoubleClick = new EventEmitter<Nodeg>()
+  @Output() public onDoubleClick = new EventEmitter<NodePointerEvent>()
 
   /**
    * EventEmitter which will be triggered when a node is hovered.
    */
-  @Output() public onPointerOver = new EventEmitter<Nodeg>()
+  @Output() public onPointerOver = new EventEmitter<NodePointerEvent>()
 
   /**
    * EventEmitter which will be triggered when a node is left.
    */
-  @Output() public onPointerLeave = new EventEmitter<Nodeg>()
+  @Output() public onPointerLeave = new EventEmitter<NodePointerEvent>()
 
   /**
    * EventEmitter which will be triggered on pointer down.
    */
-  @Output() public onPointerDown = new EventEmitter<Nodeg>()
+  @Output() public onPointerDown = new EventEmitter<NodePointerEvent>()
 
   /**
    * EventEmitter which will be triggered on pointer up.
    */
-  @Output() public onPointerUp = new EventEmitter<Nodeg>()
+  @Output() public onPointerUp = new EventEmitter<NodePointerEvent>()
 
   /**
    * EventEmitter which will trigger whenever context is updated.

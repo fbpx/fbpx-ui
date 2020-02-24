@@ -864,7 +864,7 @@ export class GraphComponent
     }
   }
 
-  private onWheel = (event: PointerWheelEvent) => {
+  private onWheel = (event: WheelEvent) => {
     const delta =
       event.deltaY === 0 && event.deltaX ? event.deltaX : event.deltaY
     const wheel = delta < 0 ? 1 : -1

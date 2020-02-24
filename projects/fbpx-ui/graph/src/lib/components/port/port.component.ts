@@ -82,6 +82,7 @@ export class PortComponent implements OnDestroy {
   }
 
   private handlePointerDown = (event: PointerEvent): void => {
+    event.preventDefault()
     event.stopPropagation()
 
     this.isActive = true

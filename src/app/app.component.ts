@@ -3,7 +3,7 @@ import {SelectionChange} from '@fbpx-ui/core'
 import {exampleFlows} from './examples'
 import {
   dagreLayout,
-  GraphNodeMouseEvent,
+  GraphNodePointerEvent,
   SelectionManager,
   Flow,
   Link,
@@ -77,7 +77,7 @@ export class AppComponent implements OnDestroy {
     this.graphComponent.zoom(scale)
   }
 
-  onNodeClick = (event: GraphNodeMouseEvent) => {
+  onNodeClick = (event: GraphNodePointerEvent) => {
     event.nodeComponent.toggleClass('selected')
   }
 
