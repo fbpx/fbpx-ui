@@ -18,7 +18,7 @@ import {
   QueryList,
   ViewEncapsulation,
 } from '@angular/core'
-import {debugElement, getCoords, Position, writeTransform} from '@fbpx-ui/core'
+import {getCoords, Position, writeTransform} from '@fbpx-ui/core'
 import {LinkComponent, LinkEvent} from '../link/link.component'
 import {
   NodeComponent,
@@ -345,8 +345,6 @@ export class GraphComponent
    */
   public zoom(scale: number) {
     const {x, y, width, height} = this.parentContainer.getBoundingClientRect()
-
-    debugElement()({x, y})
 
     this.zoomToFocalPoint(scale, {
       x: x + width / 2,
