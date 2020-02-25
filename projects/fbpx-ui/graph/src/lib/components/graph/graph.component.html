@@ -9,12 +9,15 @@
     #graphElement
     drag
     [dragTarget]="graphContainer"
-    [dragEnabled]="panEnabled"
+    [dragEnabled]="panEnabled && !(isPinching$ | async)"
     [dragScale]="1"
     [dragSource]="false"
     (onDrag)="handlePan($event)"
     (onDragStart)="handlePanStart($event)"
     (onDragEnd)="handlePanEnd($event)"
+    (pinchStart)="onPinchStart($event)"
+    (pinch)="onPinch($event)"
+    (pinchEnd)="onPinchEnd($event)"
     class="graph"
   >
     <svg *ngIf="isInitialized" class="link-canvas">

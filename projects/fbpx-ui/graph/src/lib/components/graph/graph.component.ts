@@ -240,6 +240,8 @@ export class GraphComponent
   public linkComponents: QueryList<LinkComponent>
   public linksCreated: boolean = false
   public isInitialized: boolean = false
+  public _scale: number = 1
+  public isPinching$ = new BehaviorSubject(false)
 
   private _removeDeselectAreaForNodesHandler: Function
   private _removeDeselectAreaForLinksHandler: Function
@@ -253,7 +255,7 @@ export class GraphComponent
   private element: HTMLElement
   private cancelClick: boolean = false
   private _autoScale: boolean = false
-  public _scale: number = 1
+  private pinchCenter: Position
 
   constructor(
     private changeDetectorRef: ChangeDetectorRef,
@@ -501,12 +503,20 @@ export class GraphComponent
       y: this.offset.y + data.movementY,
     }
 
+    requestAnimationFrame(() => {
+      // not particularly faster
+      this.linkGroupRef.nativeElement.style.translate = this.currentTransformSVG
+      this.nodeGroupRef.nativeElement.style.translate = this.currentTransform
+    })
+
+    /*
     this.onPan.emit({
       offset: this.offset,
       data,
     })
+    */
 
-    this.changeDetectorRef.detectChanges()
+    // this.changeDetectorRef.detectChanges()
   }
 
   /**
@@ -811,7 +821,7 @@ export class GraphComponent
   }
 
   public linkTracker = (_index, item) => {
-    return item.renderId
+    return item.id // renderId
   }
 
   public nodeTracker = (_index, item) => {
@@ -862,6 +872,22 @@ export class GraphComponent
       port.x = ports[name].x - offset.x / this._scale
       port.y = ports[name].y - offset.y / this._scale
     }
+  }
+
+  public onPinchStart(event: HammerInput) {
+    this.pinchCenter = event.center
+    this.isPinching$.next(true)
+  }
+
+  public onPinchEnd(event: HammerInput) {
+    this.pinchCenter = null
+    this.isPinching$.next(false)
+  }
+
+  public onPinch(event: HammerInput) {
+    const scale = this._scale / Math.exp((1 - event.scale) / 4)
+
+    this.zoomToFocalPoint(scale, this.pinchCenter)
   }
 
   private onWheel = (event: WheelEvent) => {

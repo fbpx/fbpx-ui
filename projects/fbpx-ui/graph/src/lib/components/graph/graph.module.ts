@@ -6,9 +6,12 @@ import {SharedModule} from '../shared/shared.module'
 import {NgDragDropModule} from 'ng-drag-drop'
 import {GraphComponent} from './graph.component'
 import {SelectionManager} from './services'
+import {BrowserModule, HammerModule} from '@angular/platform-browser'
 
 @NgModule({
   imports: [
+    BrowserModule,
+    HammerModule,
     CommonModule,
     SharedModule,
     LinkModule,

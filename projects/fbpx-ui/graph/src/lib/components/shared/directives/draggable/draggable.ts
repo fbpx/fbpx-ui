@@ -122,6 +122,9 @@ export class DraggableDirective implements AfterViewInit, OnChanges {
   }
 
   public async onDragging(event: PointerEvent): Promise<void> {
+    if (!this.dragEnabled) {
+      return
+    }
     if (!this.dragging) {
       this.dragging = true
       const dragData = this._dragStrategy.onStartDrag(event)
